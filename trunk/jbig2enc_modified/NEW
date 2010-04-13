@@ -1,0 +1,9 @@
+This is jbig2enc developed by Adam Langley that is modified by Radim Hatlapatka (hata.radim@gmail.com)
+
+It improves perceptually lossless coding on text regions by trying to find local cumulation of differences.
+For more informations look at 
+
+http://www.fi.muni.cz/~xhatlap/pdfRecompression.html
+
+
+You can run modified version of jbig2enc if you run it with options: -s -autoThresh
