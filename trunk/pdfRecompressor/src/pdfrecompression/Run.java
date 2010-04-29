@@ -125,6 +125,23 @@ public class Run {
         double startTime = System.currentTimeMillis();
 
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
+        
+//        InputStream is = null;
+//        try {
+//            is = new FileInputStream(pdfFile);
+//            pdfProcessing.extractImagesStreamsUsingIText(is);
+//        } catch (FileNotFoundException ex) {
+//            System.err.println("File not found");
+//        } finally {
+//            if (is != null) {
+//                try {
+//                    is.close();
+//                } catch (IOException ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        }
+
         pdfProcessing.extractImages(pdfFile, password, pagesToProcess);
         System.out.println("invoking jbig2enc");
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();

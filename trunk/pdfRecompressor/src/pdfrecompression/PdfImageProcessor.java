@@ -7,12 +7,26 @@ package pdfrecompression;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Image;
 import com.lowagie.text.pdf.PRIndirectReference;
+import com.lowagie.text.pdf.PRStream;
 import com.lowagie.text.pdf.PdfDictionary;
 import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfObject;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfStamper;
+import com.lowagie.text.pdf.PdfStream;
 import com.lowagie.text.pdf.PdfWriter;
+//import com.itextpdf.text.DocumentException;
+//import com.itextpdf.text.Image;
+//import com.itextpdf.text.pdf.PRIndirectReference;
+//import com.itextpdf.text.pdf.PRStream;
+//import com.itextpdf.text.pdf.PdfDictionary;
+//import com.itextpdf.text.pdf.PdfName;
+//import com.itextpdf.text.pdf.PdfObject;
+//import com.itextpdf.text.pdf.PdfReader;
+//import com.itextpdf.text.pdf.PdfStamper;
+//import com.itextpdf.text.pdf.PdfStream;
+//import com.itextpdf.text.pdf.PdfWriter;
+import java.awt.Toolkit;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -85,9 +99,9 @@ public class PdfImageProcessor {
             try {
                 ByteArrayOutputStream decryptedOutputStream = null;
                 PdfReader reader = new PdfReader(pdfFile, password.getBytes());
-                PdfStamper stamper = new PdfStamper(reader, decryptedOutputStream);                
+                PdfStamper stamper = new PdfStamper(reader, decryptedOutputStream);
                 stamper.close();
-                inputStream = new ByteArrayInputStream(decryptedOutputStream.toByteArray());                
+                inputStream = new ByteArrayInputStream(decryptedOutputStream.toByteArray());
             } catch (DocumentException ex) {
                 throw new PdfRecompressionException(ex);
             } catch (IOException ex) {
@@ -124,21 +138,22 @@ public class PdfImageProcessor {
             // going page by page
             List pages = document.getDocumentCatalog().getAllPages();
             for (int pageNumber = 0; pageNumber < pages.size(); pageNumber++) {
-                if ((pagesToProcess != null) && (!pagesToProcess.contains(pageNumber+1))) {
+                if ((pagesToProcess != null) && (!pagesToProcess.contains(pageNumber + 1))) {
                     continue;
                 }
                 PDPage page = (PDPage) pages.get(pageNumber);
                 PDResources resources = page.getResources();
 
+
+
                 // reading images from each page and saving them to file
-                // (name of file is saved in list namesOfImages
+                // (name of file is saved in list namSystem.err.println(images);esOfImages
                 Map images = resources.getImages();
                 if (images != null) {
                     Iterator imageIter = images.keySet().iterator();
                     while (imageIter.hasNext()) {
                         String key = (String) imageIter.next();
                         PDXObjectImage image = (PDXObjectImage) images.get(key);
-
 
                         PDStream pdStr = new PDStream(image.getCOSStream());
                         List filters = pdStr.getFilters();
@@ -165,7 +180,7 @@ public class PdfImageProcessor {
                             System.err.println("Unsupported filter JPXDecode => skipping");
                             continue;
                         }
-                        
+
                         String name = getUniqueFileName(prefix + key, image.getSuffix());
                         System.out.println("Writing image:" + name);
                         image.write2file(name);
@@ -208,6 +223,80 @@ public class PdfImageProcessor {
     }
 
     /**
+     * extract stream of image using IText library
+     * @param is represent input stream from pdf document
+     * @throws pdfrecompression.PdfRecompressionException
+     */
+    public void extractImagesStreamsUsingIText(InputStream is) throws PdfRecompressionException {
+        if (is == null) {
+            throw new NullPointerException("is");
+        }
+        try {
+            System.out.println("Running extractUsingItext");
+            PdfReader reader = new PdfReader(is);
+            for (int i = 0; i < reader.getXrefSize(); i++) {
+                PdfObject pdfObj = reader.getPdfObject(i);
+                if (pdfObj == null) {
+                    System.err.println("Unable to read PDF Object");
+                    continue;
+                }
+                if (!pdfObj.isStream()) {
+                    continue;
+                }
+                PdfStream stream = (PdfStream) pdfObj;
+                PdfObject pdfsubtype = stream.get(PdfName.SUBTYPE);
+                if (pdfsubtype == null) {
+                    continue;
+                }
+                if (pdfsubtype.toString().equals(PdfName.IMAGE.toString())) {
+                    byte[] img = PdfReader.getStreamBytesRaw((PRStream) stream);
+
+                    PdfObject pdfWidth = stream.get(PdfName.WIDTH);
+                    int widht;
+                    int height;
+                    if (pdfWidth == null) {
+                        System.out.println("Image without set width");
+                        if (pdfWidth.isNumber()) {
+                            System.out.println("Width = " + pdfWidth);
+                        }
+                    }
+                    PdfObject pdfHeight = stream.get(PdfName.HEIGHT);
+                    if (pdfHeight == null) {
+                        System.out.println("Image without set width");
+                        if (pdfHeight.isNumber()) {
+                            System.out.println(", Height = " + pdfHeight);
+                        }
+                    }
+
+                    PdfObject pdfBitsPerComponent = stream.get(PdfName.BITSPERCOMPONENT);
+                    if (pdfBitsPerComponent == null) {
+                        System.out.println("Image without set width");
+                        if (pdfBitsPerComponent.isNumber()) {
+                            System.out.println(", Bits per component = " + pdfBitsPerComponent);
+                        }
+                    }
+
+//                    InputStream in = new ByteArrayInputStream(img);
+//                    BufferedImage image = javax.imageio.ImageIO.read(in);
+
+
+
+
+                // I've got raw bytes of image
+                    java.awt.Image image = Toolkit.getDefaultToolkit().createImage(img);
+
+
+
+                }
+
+            }
+        } catch (IOException ex) {
+            throw new PdfRecompressionException("unable to read from input stream", ex);
+        }
+    }
+
+
+    /**
      * replace images by they recompressed version according to JBIG2 standard
      * positions and image data given in imagesData
      * @param pdfName represents name of original pdf file
@@ -232,16 +321,17 @@ public class PdfImageProcessor {
         PdfReader pdf;
         PdfStamper stp = null;
         try {
-            pdf = new PdfReader(pdfName);            
-            
-            int version;
-            if ((version = Integer.parseInt(String.valueOf(pdf.getPdfVersion()))) < 4) {
-                throw new PdfRecompressionException("Too old version of input pdf (must be at least 1.4 and is 1." +
-                        version + ")");
-            }
+            pdf = new PdfReader(pdfName);
+
+
 
             stp = new PdfStamper(pdf, os);
             PdfWriter writer = stp.getWriter();
+            int version;
+            if ((version = Integer.parseInt(String.valueOf(pdf.getPdfVersion()))) < 4) {
+                writer.setPdfVersion(PdfWriter.PDF_VERSION_1_4);
+            }
+
             List<PdfImage> jbig2Images = imagesData.getListOfJbig2Images();
             for (int i = 0; i < jbig2Images.size(); i++) {
                 PdfImage jbImage = jbig2Images.get(i);
@@ -263,7 +353,7 @@ public class PdfImageProcessor {
                     if (PdfName.IMAGE.equals(type)) {
                         PdfReader.killIndirect(obj);
                         Image maskImage = img.getImageMask();
-                        
+
                         if (maskImage != null) {
                             writer.addDirectImageSimple(maskImage);
                         }

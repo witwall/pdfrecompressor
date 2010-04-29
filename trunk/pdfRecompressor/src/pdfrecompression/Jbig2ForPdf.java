@@ -6,8 +6,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * class representing list of images compressed according to JBIG2 standard
@@ -20,7 +23,7 @@ import java.util.List;
 public class Jbig2ForPdf {
 
     private byte[] globalData;
-    private List<PdfImage> jbig2Images = new ArrayList<PdfImage>();
+    private SortedMap<Integer, PdfImage> jbig2Images;
     private List<String> jbFileNames = new ArrayList<String>();
 
 
@@ -30,7 +33,7 @@ public class Jbig2ForPdf {
      * @throws pdfrecompression.PdfRecompressionException
      */
     public Jbig2ForPdf(String pathToDir) throws PdfRecompressionException {
-
+        jbig2Images = new TreeMap<Integer, PdfImage>();
         File directory = new File(pathToDir);
         if (!directory.isDirectory()) {
             throw new PdfRecompressionException("argument pathToDir doesn`t contain path to directory");
@@ -43,15 +46,14 @@ public class Jbig2ForPdf {
             if (checkFile.isDirectory()) {
                 continue;
             }
-            int pointIndex;
 
             if ((fileName.lastIndexOf(".")+1) == (fileName.length() - 4)) {                
                 if (fileName.startsWith("output")) {
                     String suffix = fileName.substring(fileName.length()-4);
                     try {
-                        Integer.parseInt(suffix);
+                        int suffixInt = Integer.parseInt(suffix);
                         jbFileNames.add(fileName);
-                        jbig2Images.add(new PdfImage(checkFile));
+                        jbig2Images.put(suffixInt, new PdfImage(checkFile));
                     } catch (NumberFormatException ex) {
                     }
                 }
@@ -86,8 +88,8 @@ public class Jbig2ForPdf {
      * add pdf image
      * @param jbImage represents image encoding according to JBIG2 standard
      */
-    public void addJbig2Image(PdfImage jbImage) {
-        jbig2Images.add(jbImage);
+    public void addJbig2Image(int key, PdfImage jbImage) {
+        jbig2Images.put(key, jbImage);
     }
 
     /**
@@ -131,7 +133,7 @@ public class Jbig2ForPdf {
      * sets atribut jbig2Images
      * @param jbig2Images represents list of pdf images
      */
-    public void setJbig2Images(List<PdfImage> jbig2Images) {
+    public void setJbig2Images(SortedMap<Integer, PdfImage> jbig2Images) {
         this.jbig2Images = jbig2Images;
     }
 
@@ -153,8 +155,16 @@ public class Jbig2ForPdf {
     /**
      * @return list of pdf images encoded according to JBIG2 standard
      */
-    public List<PdfImage> getListOfJbig2Images() {
+    public SortedMap<Integer, PdfImage> getMapOfJbig2Images() {
         return jbig2Images;
+    }
+
+    public List<PdfImage> getListOfJbig2Images() {
+        List<PdfImage> pdfImages = new ArrayList<PdfImage>();
+        for (int i = 0; i < jbig2Images.lastKey(); i++) {
+            pdfImages.add(jbig2Images.get(i));
+        }
+        return pdfImages;
     }
 
     /**
