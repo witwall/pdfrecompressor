@@ -195,7 +195,7 @@ public class Run {
         int sec  = (time % 3600)%60;
         System.out.print("\n" + pdfFile + " succesfully recompressed in ");
         System.out.println(String.format("%02d:%02d:%02d", hour, min, sec));
-   
+
     }
 
     /**
