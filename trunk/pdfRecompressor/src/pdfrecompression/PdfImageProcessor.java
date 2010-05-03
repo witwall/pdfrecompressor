@@ -26,12 +26,13 @@ import com.lowagie.text.pdf.PdfWriter;
 //import com.itextpdf.text.pdf.PdfStamper;
 //import com.itextpdf.text.pdf.PdfStream;
 //import com.itextpdf.text.pdf.PdfWriter;
-import java.awt.Toolkit;
+import imageWriter.BinaryGifWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -251,39 +252,87 @@ public class PdfImageProcessor {
                 if (pdfsubtype.toString().equals(PdfName.IMAGE.toString())) {
                     byte[] img = PdfReader.getStreamBytesRaw((PRStream) stream);
 
-                    PdfObject pdfWidth = stream.get(PdfName.WIDTH);
-                    int widht;
-                    int height;
-                    if (pdfWidth == null) {
-                        System.out.println("Image without set width");
-                        if (pdfWidth.isNumber()) {
-                            System.out.println("Width = " + pdfWidth);
-                        }
-                    }
-                    PdfObject pdfHeight = stream.get(PdfName.HEIGHT);
-                    if (pdfHeight == null) {
-                        System.out.println("Image without set width");
-                        if (pdfHeight.isNumber()) {
-                            System.out.println(", Height = " + pdfHeight);
-                        }
-                    }
+                    int width = 0;
+                    int height = 0;
+                    int bitDepth = 0;
 
                     PdfObject pdfBitsPerComponent = stream.get(PdfName.BITSPERCOMPONENT);
                     if (pdfBitsPerComponent == null) {
-                        System.out.println("Image without set width");
-                        if (pdfBitsPerComponent.isNumber()) {
-                            System.out.println(", Bits per component = " + pdfBitsPerComponent);
+                        System.out.println("Image without set bits per component");
+                    } else {
+                        if (pdfBitsPerComponent.isNumber()) {                   
+
+                            try {
+                                bitDepth = Integer.parseInt(pdfBitsPerComponent.toString());
+                                if (bitDepth != 1) {
+                                    System.out.println("Not a bi-level image => skipping");
+                                    continue;
+                                }
+                            } catch (NumberFormatException ex) {
+                                throw new PdfRecompressionException("bits per component is not a number", ex);
+                            }
                         }
                     }
 
-//                    InputStream in = new ByteArrayInputStream(img);
-//                    BufferedImage image = javax.imageio.ImageIO.read(in);
+                    PdfObject pdfWidth = stream.get(PdfName.WIDTH);
+                    if (pdfWidth == null) {
+                        System.out.println("Image without set width");
+                    } else {
+                        if (pdfWidth.isNumber()) {
+                            try {
+                                width = Integer.parseInt(pdfWidth.toString());
+                            } catch (NumberFormatException ex) {
+                                throw new PdfRecompressionException("Images width is not a number", ex);
+                            }
+                        }
+                    }
+
+                    PdfObject pdfHeight = stream.get(PdfName.HEIGHT);
+                    if (pdfHeight == null) {
+                        System.out.println("Image without set height");
+                    } else {
+                        if (pdfHeight.isNumber()) {
+                            try {
+                                height = Integer.parseInt(pdfHeight.toString());
+                            } catch (NumberFormatException ex) {
+                                throw new PdfRecompressionException("Images height is not a number", ex);
+                            }
+                        }
+                    }
+
+                    if (width > 0 && height > 0) {
+                        System.out.println("width = " + width + ", height = " + height);
+
+                        // you should synchronize part of creating image file
+                        String fileName = getUniqueFileName("im", "gif");
+                        File imageFile = new File(fileName);
+                        imageFile.createNewFile();
+                        FileOutputStream output = new FileOutputStream(imageFile);
+                        System.out.println(img.length * 8);
 
 
+                        BinaryGifWriter.saveGif(img, width, height, false, false, output);
+                        namesOfImages.add(fileName);
+                        output.flush();
+                        output.close();
+                    } else {
+                        System.err.println("cannot process image with zero width or height");
+                    }
+
+//                    PdfImageInformation pdfImageInfo = new PdfImageInformation(key, width, height, );
+//                    originalImageInformations.add(pdfImageInfo);
+
+                    
 
 
-                // I've got raw bytes of image
-                    java.awt.Image image = Toolkit.getDefaultToolkit().createImage(img);
+////                    InputStream in = new ByteArrayInputStream(img);
+////                    BufferedImage image = javax.imageio.ImageIO.read(in);
+//
+//
+//
+//
+//                // I've got raw bytes of image
+//                    java.awt.Image image = Toolkit.getDefaultToolkit().createImage(img);
 
 
 
@@ -294,7 +343,6 @@ public class PdfImageProcessor {
             throw new PdfRecompressionException("unable to read from input stream", ex);
         }
     }
-
 
     /**
      * replace images by they recompressed version according to JBIG2 standard
