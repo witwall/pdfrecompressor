@@ -183,7 +183,7 @@ public class PdfImageProcessor {
                         }
 
                         String name = getUniqueFileName(prefix + key, image.getSuffix());
-                        System.out.println("Writing image:" + name);
+//                        System.out.println("Writing image:" + name);
                         image.write2file(name);
                         PdfImageInformation pdfImageInfo = new PdfImageInformation(key, image.getWidth(), image.getHeight(), pageNumber + 1);
                         originalImageInformations.add(pdfImageInfo);
@@ -258,7 +258,7 @@ public class PdfImageProcessor {
 
                     PdfObject pdfBitsPerComponent = stream.get(PdfName.BITSPERCOMPONENT);
                     if (pdfBitsPerComponent == null) {
-                        System.out.println("Image without set bits per component");
+                        System.err.println("Image without set bits per component");
                     } else {
                         if (pdfBitsPerComponent.isNumber()) {                   
 
@@ -276,7 +276,7 @@ public class PdfImageProcessor {
 
                     PdfObject pdfWidth = stream.get(PdfName.WIDTH);
                     if (pdfWidth == null) {
-                        System.out.println("Image without set width");
+                        System.err.println("Image without set width");
                     } else {
                         if (pdfWidth.isNumber()) {
                             try {
@@ -289,7 +289,7 @@ public class PdfImageProcessor {
 
                     PdfObject pdfHeight = stream.get(PdfName.HEIGHT);
                     if (pdfHeight == null) {
-                        System.out.println("Image without set height");
+                        System.err.println("Image without set height");
                     } else {
                         if (pdfHeight.isNumber()) {
                             try {
@@ -415,6 +415,5 @@ public class PdfImageProcessor {
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         }
-
     }
 }
