@@ -120,7 +120,7 @@ public class Run {
         
         File originalPdf = new File(pdfFile);
 
-        System.out.println("Processing " + pdfFile);
+//        System.out.println("Processing " + pdfFile);
         long sizeOfInputPdf = new File(pdfFile).length();
         double startTime = System.currentTimeMillis();
 
@@ -143,7 +143,7 @@ public class Run {
 //        }
 
         pdfProcessing.extractImages(pdfFile, password, pagesToProcess);
-        System.out.println("invoking jbig2enc");
+//        System.out.println("invoking jbig2enc");
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             System.out.println("No images in " + pdfFile + " to recompress");
