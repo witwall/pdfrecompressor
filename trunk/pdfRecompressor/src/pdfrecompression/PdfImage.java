@@ -75,8 +75,8 @@ public class PdfImage {
      * @param width represents with of image
      * @param height represents height of image
      */
-    public void setPdfImageInformation(String key, int pageNum, int width, int height) {
-        pdfImageInformation = new PdfImageInformation(key, width, height, pageNum);
+    public void setPdfImageInformation(String key, int pageNum, int width, int height, int objNum, int genNum) {
+        pdfImageInformation = new PdfImageInformation(key, width, height, objNum, genNum);
     }
 
     /**
