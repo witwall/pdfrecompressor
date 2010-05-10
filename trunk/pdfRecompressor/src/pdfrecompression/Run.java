@@ -117,7 +117,7 @@ public class Run {
         if (outputPdf == null) {
             outputPdf = pdfFile;
         }
-        
+                
         File originalPdf = new File(pdfFile);
 
 //        System.out.println("Processing " + pdfFile);
@@ -125,24 +125,9 @@ public class Run {
         double startTime = System.currentTimeMillis();
 
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
-        
-//        InputStream is = null;
-//        try {
-//            is = new FileInputStream(pdfFile);
-//            pdfProcessing.extractImagesStreamsUsingIText(is);
-//        } catch (FileNotFoundException ex) {
-//            System.err.println("File not found");
-//        } finally {
-//            if (is != null) {
-//                try {
-//                    is.close();
-//                } catch (IOException ex) {
-//                    ex.printStackTrace();
-//                }
-//            }
-//        }
+         
 
-        pdfProcessing.extractImages(pdfFile, password, pagesToProcess);
+        pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess);
 //        System.out.println("invoking jbig2enc");
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
@@ -151,7 +136,7 @@ public class Run {
         }
         runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh);
 
-        System.out.println("running jbig2enc finished");
+//        System.out.println("running jbig2enc finished");
 
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".");
@@ -188,7 +173,6 @@ public class Run {
             }
         }
 
-        deleteFilesFromList(pdfImages.getJbFileNames());
         int time = (int)(System.currentTimeMillis() - startTime) / 1000;
         int hour = time / 3600;
         int min  = (time % 3600)/60;
@@ -201,7 +185,7 @@ public class Run {
     /**
      * @param filesToDelete list of fileNames to be deleted
      */
-    private static void deleteFilesFromList(List<String> filesToDelete) {
+    public static void deleteFilesFromList(List<String> filesToDelete) {
         for (int i = 0; i < filesToDelete.size(); i++) {
             File fileToDelete = new File(filesToDelete.get(i));
             if (! fileToDelete.delete()) {
