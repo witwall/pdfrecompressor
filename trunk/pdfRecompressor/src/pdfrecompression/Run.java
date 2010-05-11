@@ -125,10 +125,11 @@ public class Run {
         double startTime = System.currentTimeMillis();
 
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
+        System.out.println("Extracting images");
          
 
         pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess);
-//        System.out.println("invoking jbig2enc");
+        System.out.println("invoking jbig2enc");
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             System.out.println("No images in " + pdfFile + " to recompress");
@@ -136,7 +137,8 @@ public class Run {
         }
         runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh);
 
-//        System.out.println("running jbig2enc finished");
+
+        System.out.println("running jbig2enc finished, starting replacing images in PDF");
 
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".");
@@ -179,6 +181,7 @@ public class Run {
         int sec  = (time % 3600)%60;
         System.out.print("\n" + pdfFile + " succesfully recompressed in ");
         System.out.println(String.format("%02d:%02d:%02d", hour, min, sec));
+        System.out.println("Totaly was recompressed " + pdfImages.getMapOfJbig2Images().size() + " images");
 
     }
 

@@ -275,13 +275,10 @@ public class PdfImageProcessor {
                     PdfName type =
                             (PdfName) PdfReader.getPdfObject(tg.get(PdfName.SUBTYPE));
                     if (PdfName.IMAGE.equals(type)) {
-                        System.out.println(obj);
                         PRIndirectReference ref = (PRIndirectReference) obj;
                         PdfObjId imId = new PdfObjId(ref.getNumber(), ref.getGeneration());
                         PdfImage jbImage = jbig2Images.get(imId);
                         PdfImageInformation jbImageInfo = jbImage.getPdfImageInformation();
-                        String objID = jbImageInfo.getObjectNum() + "," + jbImageInfo.getObjectGenNum();
-                        System.out.println(objID);
                         Image img = Image.getInstance(jbImageInfo.getWidth(), jbImageInfo.getHeight(), jbImage.getImageData(), imagesData.getGlobalData());
 
                         PdfReader.killIndirect(obj);
