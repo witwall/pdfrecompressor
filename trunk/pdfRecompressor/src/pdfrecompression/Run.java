@@ -259,6 +259,7 @@ public class Run {
             }
             if (exitValue != 0) {
                 System.err.println(run + " ended with error " + exitValue);
+                deleteFilesFromList(imageList);
                 System.exit(3);
             }
         } catch (IOException ex) {
