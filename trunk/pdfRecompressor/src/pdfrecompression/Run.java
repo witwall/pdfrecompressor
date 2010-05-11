@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package pdfrecompression;
 
 import java.io.BufferedReader;
@@ -68,7 +67,8 @@ public class Run {
                             }
                             password = args[i];
                         }
-                    } if (args[i].equalsIgnoreCase("-thresh")) {
+                    }
+                    if (args[i].equalsIgnoreCase("-thresh")) {
                         i++;
                         if (i >= args.length) {
                             usage();
@@ -76,9 +76,9 @@ public class Run {
 
                         defaultThresh = Double.parseDouble(args[i]);
                         if ((defaultThresh > 0.9) || (defaultThresh < 0.5)) {
-                                usage();
-                        }                            
-                        
+                            usage();
+                        }
+
                     } else {
                         if (args[i].equalsIgnoreCase("-autoThresh")) {
                             autoThresh = true;
@@ -87,7 +87,7 @@ public class Run {
                                 pagesToProcess = new HashSet<Integer>();
                                 i++;
                                 if (i >= args.length) {
-                                   usage();
+                                    usage();
                                 }
                                 try {
 
@@ -96,7 +96,7 @@ public class Run {
                                         pagesToProcess.add(page);
                                         i++;
                                         if (i >= args.length) {
-                                           usage();
+                                            usage();
                                         }
                                     }
                                 } catch (NumberFormatException ex) {
@@ -117,7 +117,7 @@ public class Run {
         if (outputPdf == null) {
             outputPdf = pdfFile;
         }
-                
+
         File originalPdf = new File(pdfFile);
 
 //        System.out.println("Processing " + pdfFile);
@@ -126,7 +126,7 @@ public class Run {
 
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
         System.out.println("Extracting images");
-         
+
 
         pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess);
         System.out.println("invoking jbig2enc");
@@ -157,7 +157,7 @@ public class Run {
             out = new FileOutputStream(fileName);
             pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages);
             long sizeOfOutputPdf = fileName.length();
-            float saved = (((float)(sizeOfInputPdf - sizeOfOutputPdf))/sizeOfInputPdf) * 100;
+            float saved = (((float) (sizeOfInputPdf - sizeOfOutputPdf)) / sizeOfInputPdf) * 100;
             System.out.println("Size of pdf before recompression = " + sizeOfInputPdf);
             System.out.println("Size of pdf file after recompression = " + sizeOfOutputPdf);
             System.out.println("=> Saved " + String.format("%.2f", saved) + " % from original size");
@@ -175,10 +175,10 @@ public class Run {
             }
         }
 
-        int time = (int)(System.currentTimeMillis() - startTime) / 1000;
+        int time = (int) (System.currentTimeMillis() - startTime) / 1000;
         int hour = time / 3600;
-        int min  = (time % 3600)/60;
-        int sec  = (time % 3600)%60;
+        int min = (time % 3600) / 60;
+        int sec = (time % 3600) % 60;
         System.out.print("\n" + pdfFile + " succesfully recompressed in ");
         System.out.println(String.format("%02d:%02d:%02d", hour, min, sec));
         System.out.println("Totaly was recompressed " + pdfImages.getMapOfJbig2Images().size() + " images");
@@ -191,7 +191,7 @@ public class Run {
     public static void deleteFilesFromList(List<String> filesToDelete) {
         for (int i = 0; i < filesToDelete.size(); i++) {
             File fileToDelete = new File(filesToDelete.get(i));
-            if (! fileToDelete.delete()) {
+            if (!fileToDelete.delete()) {
                 System.err.println("problem to delete file: " + fileToDelete.getName());
             }
         }
@@ -202,7 +202,7 @@ public class Run {
      * @param jbig2enc represents path to jbig2enc
      * @param image input image to be compressed
      */
-    private static void runJbig2enc (String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh) throws PdfRecompressionException {
+    private static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh) throws PdfRecompressionException {
         if (jbig2enc == null) {
             throw new NullPointerException("No path to encoder given!");
         }
@@ -224,11 +224,11 @@ public class Run {
 
         String run = jbig2enc + " -s -p";
         if (autoThresh) {
-            run +=  " -autoThresh";
+            run += " -autoThresh";
         }
-        
+
         run += " -t " + defaultThresh;
-        
+
         run += images;
         Runtime runtime = Runtime.getRuntime();
         Process pr1;
@@ -238,7 +238,7 @@ public class Run {
             int exitValue = pr1.waitFor();
             BufferedReader reader = new BufferedReader(new InputStreamReader(erStream));
             String line;
-            while ((line = reader.readLine())!=null) {
+            while ((line = reader.readLine()) != null) {
 //                writes only a number of symbols recognised by encoder and number of pages
 //                String[] word = line.split(" ");
 //                for (int i = 0; i < word.length; i++) {
@@ -257,7 +257,7 @@ public class Run {
 
                 System.out.println(line);
             }
-            if (exitValue!=0) {
+            if (exitValue != 0) {
                 System.err.println(run + " ended with error " + exitValue);
                 System.exit(3);
             }
@@ -267,27 +267,26 @@ public class Run {
         } catch (InterruptedException ex2) {
             System.err.println(ex2.toString());
             ex2.printStackTrace();
+        } finally {
+            deleteFilesFromList(imageList);
         }
-        deleteFilesFromList(imageList);
     }
-
 
     /**
      * write usage of main method
      */
     private static void usage() {
         System.err.println("Usage: -pathToEnc <Path to jbig2enc> -input <pdf file> [OPTIONAL]\n");
-        System.err.println("Mandatory options:\n" +
-                "-pathToEnc <Path to jbig2enc>: path to trigger of jbig2enc (usually file named jbig2)\n" +
-                "-intput <pdf file>: pdf file that should be recompressed\n");
+        System.err.println("Mandatory options:\n"
+                + "-pathToEnc <Path to jbig2enc>: path to trigger of jbig2enc (usually file named jbig2)\n"
+                + "-intput <pdf file>: pdf file that should be recompressed\n");
 
-        System.err.println("OPTIONAL parameters:\n" +
-                "-output <outputPdf>: name of output pdf file (if not given used input pdf file\n" +
-                "-passwd <password>: password used for decrypting file\n" +
-                "-thresh <valueOfDefaultThresholding>: value that is set to enkoder with switch -t\n" +
-                "-autoThresh: engage automatic thresholding (special comparing between two symbols to make better compression ratio)\n" +
-                "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored)");
+        System.err.println("OPTIONAL parameters:\n"
+                + "-output <outputPdf>: name of output pdf file (if not given used input pdf file\n"
+                + "-passwd <password>: password used for decrypting file\n"
+                + "-thresh <valueOfDefaultThresholding>: value that is set to enkoder with switch -t\n"
+                + "-autoThresh: engage automatic thresholding (special comparing between two symbols to make better compression ratio)\n"
+                + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored)");
         System.exit(1);
     }
-
 }

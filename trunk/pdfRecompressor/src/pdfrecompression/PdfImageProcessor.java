@@ -228,19 +228,21 @@ public class PdfImageProcessor {
                 writer.setPdfVersion(PdfWriter.PDF_VERSION_1_4);
             }
 
-            String key = "im1";
+            Iterator itImages = jbig2Images.values().iterator();
+            String key;
+            if (itImages.hasNext()) {
+                PdfImage myImg = (PdfImage) itImages.next();
+                key = myImg.getPdfImageInformation().getKey();
+            } else {
+                key = "im1";
+            }
 
             for (int pageNum = 1; pageNum <= pdf.getNumberOfPages(); pageNum++) {
 
                 PdfDictionary pg = pdf.getPageN(pageNum);
                 PdfDictionary resPg =
                         (PdfDictionary) PdfReader.getPdfObject(pg.get(PdfName.RESOURCES));
-                if (resPg != null) {
-                    for (Iterator it = resPg.getKeys().iterator(); it.hasNext();) {
-                        PdfObject obj = resPg.get((PdfName) it.next());
-
-                    }
-                }
+                
                 PdfDictionary xobjResPg =
                         (PdfDictionary) PdfReader.getPdfObject(resPg.get(PdfName.XOBJECT));
 
