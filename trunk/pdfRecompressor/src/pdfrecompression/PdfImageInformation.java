@@ -33,7 +33,6 @@ public class PdfImageInformation {
         this.key = key;
         this.width = width;
         this.height = height;
-        this.pageNumber = pageNumber;
         this.objectGenNum = genNum;
         this.objectNum = objectNum;
     }

@@ -32,7 +32,6 @@ import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdfparser.PDFParser;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 
@@ -109,8 +108,6 @@ public class PdfImageProcessor {
             parser = new PDFParser(inputStream);
             parser.parse();
             doc = parser.getDocument();
-            PDDocument pdDoc = new PDDocument(doc);
-            Map pageMap = pdDoc.getPageMap();
 
 
             List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);
@@ -122,9 +119,7 @@ public class PdfImageProcessor {
                     int startOfKey = cosNameKey.indexOf("{") + 1;
                     String key = cosNameKey.substring(startOfKey, cosNameKey.length() - 1);
                     int objectNum = obj.getObjectNumber().intValue();
-                    int genNum = obj.getGenerationNumber().intValue();
-                    String objID = objectNum + "," + genNum;
-//                    System.out.println(objID);
+                    int genNum = obj.getGenerationNumber().intValue();                    
                     PDXObjectImage image = (PDXObjectImage) PDXObjectImage.createXObject(imageObj);
 
                     PDStream pdStr = new PDStream(image.getCOSStream());
@@ -158,10 +153,6 @@ public class PdfImageProcessor {
                     image.write2file(name);
 
 
-//                    System.out.println(pageMap.get(objID));
-
-                    int pageNumber = 0;
-
                     PdfImageInformation pdfImageInfo =
                             new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
                     originalImageInformations.add(pdfImageInfo);
@@ -183,7 +174,6 @@ public class PdfImageProcessor {
             }
         }
     }
-
 
     /**
      * get file name that is not used right now
@@ -223,12 +213,8 @@ public class PdfImageProcessor {
             throw new IllegalArgumentException("imagesData is null => nothing to recompress");
         }
 
-        List<PdfImage> jbig2Images = imagesData.getListOfJbig2Images();
-        if (jbig2Images.isEmpty()) {
-            throw new IllegalArgumentException("nothing to recompress");
-        }
-        int imageNumber = 0;
-
+        Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
+        
 
         PdfReader pdf;
         PdfStamper stp = null;
@@ -242,8 +228,7 @@ public class PdfImageProcessor {
                 writer.setPdfVersion(PdfWriter.PDF_VERSION_1_4);
             }
 
-
-            String key = jbig2Images.get(imageNumber).getPdfImageInformation().getKey();
+            String key = "im1";
 
             for (int pageNum = 1; pageNum <= pdf.getNumberOfPages(); pageNum++) {
 
@@ -267,10 +252,9 @@ public class PdfImageProcessor {
                             PdfDictionary pdfObj2 = (PdfDictionary) PdfReader.getPdfObject(pdfObjIndirect);
                             PdfDictionary xobj2Res = (PdfDictionary) PdfReader.getPdfObject(pdfObj2.get(PdfName.RESOURCES));
 
-                            if (xobj2Res != null) { 
+                            if (xobj2Res != null) {
                                 for (Iterator it2 = xobj2Res.getKeys().iterator(); it2.hasNext();) {
                                     PdfObject resObj = xobj2Res.get((PdfName) it2.next());
-                                    System.out.println(resObj);
                                 }
                                 PdfDictionary xobj = (PdfDictionary) PdfReader.getPdfObject(xobj2Res.get(PdfName.XOBJECT));
                                 if (xobj == null) {
@@ -291,9 +275,13 @@ public class PdfImageProcessor {
                     PdfName type =
                             (PdfName) PdfReader.getPdfObject(tg.get(PdfName.SUBTYPE));
                     if (PdfName.IMAGE.equals(type)) {
-                        PdfImage jbImage = jbig2Images.get(imageNumber);
+                        System.out.println(obj);
+                        PRIndirectReference ref = (PRIndirectReference) obj;
+                        PdfObjId imId = new PdfObjId(ref.getNumber(), ref.getGeneration());
+                        PdfImage jbImage = jbig2Images.get(imId);
                         PdfImageInformation jbImageInfo = jbImage.getPdfImageInformation();
-
+                        String objID = jbImageInfo.getObjectNum() + "," + jbImageInfo.getObjectGenNum();
+                        System.out.println(objID);
                         Image img = Image.getInstance(jbImageInfo.getWidth(), jbImageInfo.getHeight(), jbImage.getImageData(), imagesData.getGlobalData());
 
                         PdfReader.killIndirect(obj);
@@ -302,13 +290,7 @@ public class PdfImageProcessor {
                         if (maskImage != null) {
                             writer.addDirectImageSimple(maskImage);
                         }
-                        writer.addDirectImageSimple(img, (PRIndirectReference) obj);
-                        imageNumber++;
-                        if (imageNumber < jbig2Images.size()) {
-                            key = jbig2Images.get(imageNumber).getPdfImageInformation().getKey();
-                        } else {
-                            break;
-                        }
+                        writer.addDirectImageSimple(img, (PRIndirectReference) obj);                        
                     }
                 }
             }

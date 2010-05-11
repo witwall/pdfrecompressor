@@ -6,9 +6,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -156,14 +157,17 @@ public class Jbig2ForPdf {
     /**
      * @return list of pdf images encoded according to JBIG2 standard
      */
-    public SortedMap<Integer, PdfImage> getMapOfJbig2Images() {
+    public SortedMap<Integer, PdfImage> getSortedMapOfJbig2Images() {
         return jbig2Images;
     }
 
-    public List<PdfImage> getListOfJbig2Images() {
-        List<PdfImage> pdfImages = new ArrayList<PdfImage>();
+    public Map<PdfObjId, PdfImage> getMapOfJbig2Images() {
+        Map<PdfObjId, PdfImage> pdfImages = new HashMap<PdfObjId, PdfImage>();
         for (int i = 0; i <= jbig2Images.lastKey(); i++) {
-            pdfImages.add(jbig2Images.get(i));
+            PdfImage jb2Im = jbig2Images.get(i);
+            PdfImageInformation jb2ImInfo = jb2Im.getPdfImageInformation();
+            PdfObjId objId = new PdfObjId(jb2ImInfo.getObjectNum(), jb2ImInfo.getObjectGenNum());
+            pdfImages.put(objId, jb2Im);
         }
         return pdfImages;
     }
