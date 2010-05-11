@@ -15,6 +15,8 @@ import java.io.IOException;
  */
 public class PdfImage {
 
+    private int objectNumber;
+    private int generationNumber;
     private PdfImageInformation pdfImageInformation;
     private File imageDataFile;
 
