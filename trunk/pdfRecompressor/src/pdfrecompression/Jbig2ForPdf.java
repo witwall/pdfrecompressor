@@ -55,6 +55,7 @@ public class Jbig2ForPdf {
                         jbFileNames.add(fileName);
                         jbig2Images.put(suffixInt, new PdfImage(checkFile));
                     } catch (NumberFormatException ex) {
+                        continue;
                     }
                 }
             }
@@ -161,7 +162,7 @@ public class Jbig2ForPdf {
 
     public List<PdfImage> getListOfJbig2Images() {
         List<PdfImage> pdfImages = new ArrayList<PdfImage>();
-        for (int i = 0; i < jbig2Images.lastKey(); i++) {
+        for (int i = 0; i <= jbig2Images.lastKey(); i++) {
             pdfImages.add(jbig2Images.get(i));
         }
         return pdfImages;
