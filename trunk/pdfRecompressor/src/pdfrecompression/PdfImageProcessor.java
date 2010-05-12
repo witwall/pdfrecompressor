@@ -280,6 +280,9 @@ public class PdfImageProcessor {
                         PRIndirectReference ref = (PRIndirectReference) obj;
                         PdfObjId imId = new PdfObjId(ref.getNumber(), ref.getGeneration());
                         PdfImage jbImage = jbig2Images.get(imId);
+                        if (jbImage == null) {
+                            continue;
+                        }
                         PdfImageInformation jbImageInfo = jbImage.getPdfImageInformation();
                         Image img = Image.getInstance(jbImageInfo.getWidth(), jbImageInfo.getHeight(), jbImage.getImageData(), imagesData.getGlobalData());
 
