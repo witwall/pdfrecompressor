@@ -37,6 +37,7 @@ public class Run {
         double defaultThresh = 0.85;
         Boolean autoThresh = false;
         Set<Integer> pagesToProcess = null;
+        Boolean silent = false;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-input")) {
@@ -83,25 +84,28 @@ public class Run {
                         if (args[i].equalsIgnoreCase("-autoThresh")) {
                             autoThresh = true;
                         } else {
-                            if (args[i].equalsIgnoreCase("-pages")) {
-                                pagesToProcess = new HashSet<Integer>();
-                                i++;
-                                if (i >= args.length) {
-                                    usage();
-                                }
-                                try {
-
-                                    while (!args[i].equalsIgnoreCase("-pagesEnd")) {
-                                        int page = Integer.parseInt(args[i]);
-                                        pagesToProcess.add(page);
-                                        i++;
-                                        if (i >= args.length) {
-                                            usage();
-                                        }
+                            if (args[i].equalsIgnoreCase("-q")) {
+                                silent = true;
+                            } else {
+                                if (args[i].equalsIgnoreCase("-pages")) {
+                                    pagesToProcess = new HashSet<Integer>();
+                                    i++;
+                                    if (i >= args.length) {
+                                        usage();
                                     }
-                                } catch (NumberFormatException ex) {
-                                    System.err.println("list of page numbers can contain only numbers");
-                                    usage();
+                                    try {
+                                        while (!args[i].equalsIgnoreCase("-pagesEnd")) {
+                                            int page = Integer.parseInt(args[i]);
+                                            pagesToProcess.add(page);
+                                            i++;
+                                            if (i >= args.length) {
+                                                usage();
+                                            }
+                                        }
+                                    } catch (NumberFormatException ex) {
+                                        System.err.println("list of page numbers can contain only numbers");
+                                        usage();
+                                    }
                                 }
                             }
                         }
@@ -125,20 +129,16 @@ public class Run {
         double startTime = System.currentTimeMillis();
 
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
-        System.out.println("Extracting images");
 
-
-        pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess);
-        System.out.println("invoking jbig2enc");
+        pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess, silent);
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
-            System.out.println("No images in " + pdfFile + " to recompress");
+            if (!silent) {
+                System.out.println("No images in " + pdfFile + " to recompress");
+            }
             System.exit(0);
         }
-        runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh);
-
-
-        System.out.println("running jbig2enc finished, starting replacing images in PDF");
+        runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, silent);
 
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".");
@@ -155,22 +155,26 @@ public class Run {
                 System.out.println("file " + outputPdf + " already exist => will be rewriten");
             }
             out = new FileOutputStream(fileName);
-            pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages);
+            pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages, silent);
             long sizeOfOutputPdf = fileName.length();
             float saved = (((float) (sizeOfInputPdf - sizeOfOutputPdf)) / sizeOfInputPdf) * 100;
             System.out.println("Size of pdf before recompression = " + sizeOfInputPdf);
             System.out.println("Size of pdf file after recompression = " + sizeOfOutputPdf);
             System.out.println("=> Saved " + String.format("%.2f", saved) + " % from original size");
         } catch (IOException ex) {
-            System.err.println("writing output to the file caused error");
-            ex.printStackTrace();
+            if (!silent) {
+                System.err.println("writing output to the file caused error");
+                ex.printStackTrace();
+            }
             System.exit(2);
         } finally {
             if (out != null) {
                 try {
                     out.close();
                 } catch (IOException ex2) {
-                    ex2.printStackTrace();
+                    if (!silent) {
+                        ex2.printStackTrace();
+                    }
                 }
             }
         }
@@ -188,11 +192,13 @@ public class Run {
     /**
      * @param filesToDelete list of fileNames to be deleted
      */
-    public static void deleteFilesFromList(List<String> filesToDelete) {
+    public static void deleteFilesFromList(List<String> filesToDelete, boolean silent) {
         for (int i = 0; i < filesToDelete.size(); i++) {
             File fileToDelete = new File(filesToDelete.get(i));
             if (!fileToDelete.delete()) {
-                System.err.println("problem to delete file: " + fileToDelete.getName());
+                if (!silent) {
+                    System.err.println("problem to delete file: " + fileToDelete.getName());
+                }
             }
         }
     }
@@ -202,7 +208,7 @@ public class Run {
      * @param jbig2enc represents path to jbig2enc
      * @param image input image to be compressed
      */
-    private static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh) throws PdfRecompressionException {
+    private static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh, Boolean silent) throws PdfRecompressionException {
         if (jbig2enc == null) {
             throw new NullPointerException("No path to encoder given!");
         }
@@ -258,18 +264,23 @@ public class Run {
                 System.out.println(line);
             }
             if (exitValue != 0) {
-                System.err.println(run + " ended with error " + exitValue);
-                deleteFilesFromList(imageList);
+                if (!silent) {
+                    System.err.println(run + " ended with error " + exitValue);
+                }
+                deleteFilesFromList(imageList, silent);
                 System.exit(3);
             }
         } catch (IOException ex) {
-            System.err.println("runJbig2enc caused IOException");
+            if (!silent) {
+                System.err.println("runJbig2enc caused IOException");
+            }
             ex.printStackTrace();
         } catch (InterruptedException ex2) {
-            System.err.println(ex2.toString());
-            ex2.printStackTrace();
+            if (!silent) {
+                ex2.printStackTrace();
+            }
         } finally {
-            deleteFilesFromList(imageList);
+            deleteFilesFromList(imageList, silent);
         }
     }
 
@@ -287,7 +298,8 @@ public class Run {
                 + "-passwd <password>: password used for decrypting file\n"
                 + "-thresh <valueOfDefaultThresholding>: value that is set to enkoder with switch -t\n"
                 + "-autoThresh: engage automatic thresholding (special comparing between two symbols to make better compression ratio)\n"
-                + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored)");
+                + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored)\n"
+                + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }
 }
