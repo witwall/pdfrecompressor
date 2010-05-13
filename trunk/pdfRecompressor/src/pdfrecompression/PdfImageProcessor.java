@@ -62,7 +62,7 @@ public class PdfImageProcessor {
         return originalImageInformations;
     }
 
-    public void extractImagesUsingPdfParser(String pdfFile, String password, Set<Integer> pagesToProcess) throws PdfRecompressionException {
+    public void extractImagesUsingPdfParser(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent) throws PdfRecompressionException {
         // checking arguments and setting appropriate variables
         if (pdfFile == null) {
             throw new IllegalArgumentException(pdfFile);
@@ -119,32 +119,40 @@ public class PdfImageProcessor {
                     int startOfKey = cosNameKey.indexOf("{") + 1;
                     String key = cosNameKey.substring(startOfKey, cosNameKey.length() - 1);
                     int objectNum = obj.getObjectNumber().intValue();
-                    int genNum = obj.getGenerationNumber().intValue();                    
+                    int genNum = obj.getGenerationNumber().intValue();
                     PDXObjectImage image = (PDXObjectImage) PDXObjectImage.createXObject(imageObj);
 
                     PDStream pdStr = new PDStream(image.getCOSStream());
                     List filters = pdStr.getFilters();
 
                     if (image.getBitsPerComponent() > 1) {
-                        System.err.println("It is not a bitonal image => skipping");
+                        if (!silent) {
+                            System.err.println("It is not a bitonal image => skipping");
+                        }
                         continue;
                     }
 
                     // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                     if (filters.contains(COSName.LZW_DECODE.getName())) {
-                        System.err.println("This is LZWDecoded => skipping");
+                        if (!silent) {
+                            System.err.println("This is LZWDecoded => skipping");
+                        }
                         continue;
 
                     }
 
                     // detection of unsupported filters by pdfBox library
                     if (filters.contains("JBIG2Decode")) {
-                        System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                        if (!silent) {
+                            System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                        }
                         continue;
                     }
 
                     if (filters.contains("JPXDecode")) {
-                        System.err.println("Unsupported filter JPXDecode => skipping");
+                        if (!silent) {
+                            System.err.println("Unsupported filter JPXDecode => skipping");
+                        }
                         continue;
                     }
 
@@ -200,7 +208,7 @@ public class PdfImageProcessor {
      * @param imagesData contains compressed images according to JBIG2 standard and informations about them
      * @throws PdfRecompressionException if version of pdf is lower than 1.4 or was catch DocumentException or IOException
      */
-    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData) throws PdfRecompressionException {
+    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData, Boolean silent) throws PdfRecompressionException {
         if (pdfName == null) {
             throw new NullPointerException("pdfName");
         }
@@ -214,7 +222,7 @@ public class PdfImageProcessor {
         }
 
         Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
-        
+
 
         PdfReader pdf;
         PdfStamper stp = null;
@@ -242,7 +250,7 @@ public class PdfImageProcessor {
                 PdfDictionary pg = pdf.getPageN(pageNum);
                 PdfDictionary resPg =
                         (PdfDictionary) PdfReader.getPdfObject(pg.get(PdfName.RESOURCES));
-                
+
                 PdfDictionary xobjResPg =
                         (PdfDictionary) PdfReader.getPdfObject(resPg.get(PdfName.XOBJECT));
 
@@ -292,7 +300,7 @@ public class PdfImageProcessor {
                         if (maskImage != null) {
                             writer.addDirectImageSimple(maskImage);
                         }
-                        writer.addDirectImageSimple(img, (PRIndirectReference) obj);                        
+                        writer.addDirectImageSimple(img, (PRIndirectReference) obj);
                     }
                 }
             }
@@ -302,7 +310,7 @@ public class PdfImageProcessor {
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         } finally {
-            Run.deleteFilesFromList(imagesData.getJbFileNames());
+            Run.deleteFilesFromList(imagesData.getJbFileNames(), silent);
         }
     }
 }
