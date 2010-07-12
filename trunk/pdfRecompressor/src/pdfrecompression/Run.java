@@ -131,6 +131,7 @@ public class Run {
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
 
         pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess, silent);
+//        pdfProcessing.extractImagesUsingPdfObjectAccess(pdfFile, password, pagesToProcess, silent);
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
