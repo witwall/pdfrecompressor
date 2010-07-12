@@ -81,4 +81,9 @@ public class PdfImageInformation {
         this.objectNum = objectNum;
     }
 
+    @Override
+    public String toString() {
+        return "Image " + "{" + objectNum + "," + objectGenNum + "} "
+                + "with dimensions = (" + width + "," + height + ")";
+    }
 }

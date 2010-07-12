@@ -32,7 +32,11 @@ import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdfparser.PDFParser;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 
 /**
@@ -111,63 +115,207 @@ public class PdfImageProcessor {
 
 
             List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);
-            for (COSObject obj : objs) {
-                COSBase subtype = obj.getItem(COSName.SUBTYPE);
-                if (subtype.toString().equalsIgnoreCase("COSName{Image}")) {
-                    COSBase imageObj = obj.getObject();
-                    String cosNameKey = obj.getItem(COSName.NAME).toString();
-                    int startOfKey = cosNameKey.indexOf("{") + 1;
-                    String key = cosNameKey.substring(startOfKey, cosNameKey.length() - 1);
-                    int objectNum = obj.getObjectNumber().intValue();
-                    int genNum = obj.getGenerationNumber().intValue();
-                    PDXObjectImage image = (PDXObjectImage) PDXObjectImage.createXObject(imageObj);
+            if (objs != null) {
+                for (COSObject obj : objs) {
+                    COSBase subtype = obj.getItem(COSName.SUBTYPE);
+                    if (subtype.toString().equalsIgnoreCase("COSName{Image}")) {
+                        COSBase imageObj = obj.getObject();
+                        COSBase cosNameObj = obj.getItem(COSName.NAME);
+                        if (cosNameObj != null) {
+                            String cosNameKey = cosNameObj.toString();
+                            int startOfKey = cosNameKey.indexOf("{") + 1;
+                            String key = cosNameKey.substring(startOfKey, cosNameKey.length() - 1);
+                            int objectNum = obj.getObjectNumber().intValue();
+                            int genNum = obj.getGenerationNumber().intValue();
+                            PDXObjectImage image = (PDXObjectImage) PDXObjectImage.createXObject(imageObj);
 
-                    PDStream pdStr = new PDStream(image.getCOSStream());
-                    List filters = pdStr.getFilters();
+                            PDStream pdStr = new PDStream(image.getCOSStream());
+                            List filters = pdStr.getFilters();
 
-                    if (image.getBitsPerComponent() > 1) {
-                        if (!silent) {
-                            System.err.println("It is not a bitonal image => skipping");
-                        }
-                        continue;
-                    }
+                            if (image.getBitsPerComponent() > 1) {
+                                if (!silent) {
+                                    System.err.println("It is not a bitonal image => skipping");
+                                }
+                                continue;
+                            }
 
-                    // at this moment for preventing bad output (bad coloring) from LZWDecode filter
-                    if (filters.contains(COSName.LZW_DECODE.getName())) {
-                        if (!silent) {
-                            System.err.println("This is LZWDecoded => skipping");
-                        }
-                        continue;
+                            // at this moment for preventing bad output (bad coloring) from LZWDecode filter
+                            if (filters.contains(COSName.LZW_DECODE.getName())) {
+                                if (!silent) {
+                                    System.err.println("This is LZWDecoded => skipping");
+                                }
+                                continue;
 
-                    }
+                            }
 
-                    // detection of unsupported filters by pdfBox library
-                    if (filters.contains("JBIG2Decode")) {
-                        if (!silent) {
-                            System.err.println("Allready compressed according to JBIG2 standard => skipping");
-                        }
-                        continue;
-                    }
+                            // detection of unsupported filters by pdfBox library
+                            if (filters.contains("JBIG2Decode")) {
+                                if (!silent) {
+                                    System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                                }
+                                continue;
+                            }
 
-                    if (filters.contains("JPXDecode")) {
-                        if (!silent) {
-                            System.err.println("Unsupported filter JPXDecode => skipping");
-                        }
-                        continue;
-                    }
+                            if (filters.contains("JPXDecode")) {
+                                if (!silent) {
+                                    System.err.println("Unsupported filter JPXDecode => skipping");
+                                }
+                                continue;
+                            }
 
-                    String name = getUniqueFileName(prefix, image.getSuffix());
+                            String name = getUniqueFileName(prefix, image.getSuffix());
 //                        System.out.println("Writing image:" + name);
-                    image.write2file(name);
+                            image.write2file(name);
 
 
-                    PdfImageInformation pdfImageInfo =
-                            new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
-                    originalImageInformations.add(pdfImageInfo);
+                            PdfImageInformation pdfImageInfo =
+                                    new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
+                            originalImageInformations.add(pdfImageInfo);
 
-                    namesOfImages.add(name + "." + image.getSuffix());
+                            namesOfImages.add(name + "." + image.getSuffix());
 
+                        }
+                    }
                 }
+            }
+        } catch (IOException ex) {
+            throw new PdfRecompressionException("Unable to parse PDF document", ex);
+        } finally {
+            if (doc != null) {
+                try {
+                    doc.close();
+                } catch (IOException ex) {
+                    throw new PdfRecompressionException(ex);
+                }
+            }
+        }
+    }
+
+    public void extractImagesUsingPdfObjectAccess(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent) throws PdfRecompressionException {
+        // checking arguments and setting appropriate variables
+        if (pdfFile == null) {
+            throw new IllegalArgumentException(pdfFile);
+        }
+
+        String prefix = null;
+
+        InputStream inputStream = null;
+        if (password != null) {
+            try {
+                ByteArrayOutputStream decryptedOutputStream = null;
+                PdfReader reader = new PdfReader(pdfFile, password.getBytes());
+                PdfStamper stamper = new PdfStamper(reader, decryptedOutputStream);
+                stamper.close();
+                inputStream = new ByteArrayInputStream(decryptedOutputStream.toByteArray());
+            } catch (DocumentException ex) {
+                throw new PdfRecompressionException(ex);
+            } catch (IOException ex) {
+                throw new PdfRecompressionException("Reading file caused exception", ex);
+            }
+        } else {
+            try {
+                inputStream = new FileInputStream(pdfFile);
+            } catch (FileNotFoundException ex) {
+                throw new PdfRecompressionException("File wasn't found", ex);
+            }
+        }
+
+
+        // if prefix is not set then prefix set to name of pdf without .pdf
+        // if pdfFile has unconsistent name (without suffix .pdf) and name longer than 4 chars then last for chars are removed
+        // and this string set as prefix
+        if ((prefix == null) && (pdfFile.length() > 4)) {
+            prefix = pdfFile.substring(0, pdfFile.length() - 4);
+        }
+
+
+
+
+        PDFParser parser = null;
+        PDDocument doc = null;
+        try {
+            parser = new PDFParser(inputStream);
+            parser.parse();
+            doc = parser.getPDDocument();
+
+
+            AccessPermission accessPermissions = doc.getCurrentAccessPermission();
+
+            if (!accessPermissions.canExtractContent()) {
+                throw new PdfRecompressionException("Error: You do not have permission to extract images.");
+            }
+
+            // going page by page
+            List pages = doc.getDocumentCatalog().getAllPages();
+            for (int pageNumber = 0; pageNumber < pages.size(); pageNumber++) {
+                if ((pagesToProcess != null) && (!pagesToProcess.contains(pageNumber + 1))) {
+                    continue;
+                }
+                System.err.println(pageNumber);
+                PDPage page = (PDPage) pages.get(pageNumber);
+                PDResources resources = page.getResources();
+                Map xobj = resources.getXObjects();
+
+                if (xobj != null) {
+                    Iterator xobjIter = xobj.keySet().iterator();
+                    while (xobjIter.hasNext()) {
+                        String key = (String) xobjIter.next();
+                        xobj.get(key);
+                    }
+                }
+
+                // reading images from each page and saving them to file
+                // (name of file is saved in list namSystem.err.println(images);esOfImages
+                Map images = resources.getImages();
+                if (images != null) {
+                    Iterator imageIter = images.keySet().iterator();
+                    while (imageIter.hasNext()) {
+                        String key = (String) imageIter.next();
+                        PDXObjectImage image = (PDXObjectImage) images.get(key);
+
+                        PDStream pdStr = new PDStream(image.getCOSStream());
+                        List filters = pdStr.getFilters();
+
+                        if (image.getBitsPerComponent() > 1) {
+                            System.err.println("It is not a bitonal image => skipping");
+                            continue;
+                        }
+
+                        // at this moment for preventing bad output (bad coloring) from LZWDecode filter
+                        if (filters.contains(COSName.LZW_DECODE.getName())) {
+                            System.err.println("This is LZWDecoded => skipping");
+                            continue;
+
+                        }
+
+                        // detection of unsupported filters by pdfBox library
+                        if (filters.contains("JBIG2Decode")) {
+                            System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                            continue;
+                        }
+                        if (filters.contains("JPXDecode")) {
+                            System.err.println("Unsupported filter JPXDecode => skipping");
+                            continue;
+                        }
+
+                        COSObject cosObj = new COSObject(image.getCOSObject());
+                        int objectNum = cosObj.getObjectNumber().intValue();
+                        int genNum = cosObj.getGenerationNumber().intValue();
+
+                        String name = getUniqueFileName(prefix + key, image.getSuffix());
+                        System.out.println("Writing image:" + name);
+                        image.write2file(name);
+
+                        PdfImageInformation pdfImageInfo =
+                                new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
+                        originalImageInformations.add(pdfImageInfo);
+                        System.err.println(pdfImageInfo);
+
+                        namesOfImages.add(name + "." + image.getSuffix());
+                    }
+                }
+
+
 
             }
         } catch (IOException ex) {
