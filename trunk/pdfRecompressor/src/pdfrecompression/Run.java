@@ -141,7 +141,7 @@ public class Run {
             if (!silent) {
                 System.out.println("No images in " + pdfFile + " to recompress");
             }
-            System.exit(0);
+//            System.exit(0);
         }
         runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, silent);
 
@@ -224,7 +224,10 @@ public class Run {
 
 
         if (imageList.isEmpty()) {
-            throw new IllegalArgumentException("there are no images for running jbig2enc at (given list is empty)");
+            if (!silent) {
+                System.err.println("there are no images for running jbig2enc at (given list is empty)");
+            }
+            return;
         }
 
         String images = "";
