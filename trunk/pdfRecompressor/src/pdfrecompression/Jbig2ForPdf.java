@@ -27,7 +27,6 @@ public class Jbig2ForPdf {
     private SortedMap<Integer, PdfImage> jbig2Images;
     private List<String> jbFileNames = new ArrayList<String>();
 
-
     /**
      * constructor that reads jbig2 images and global data and saves them in array of bytes
      * @param pathToDir represents path to directory containing images data and global data
@@ -48,9 +47,9 @@ public class Jbig2ForPdf {
                 continue;
             }
 
-            if ((fileName.lastIndexOf(".")+1) == (fileName.length() - 4)) {                
+            if ((fileName.lastIndexOf(".") + 1) == (fileName.length() - 4)) {
                 if (fileName.startsWith("output")) {
-                    String suffix = fileName.substring(fileName.length()-4);
+                    String suffix = fileName.substring(fileName.length() - 4);
                     try {
                         int suffixInt = Integer.parseInt(suffix);
                         jbFileNames.add(fileName);
@@ -163,11 +162,13 @@ public class Jbig2ForPdf {
 
     public Map<PdfObjId, PdfImage> getMapOfJbig2Images() {
         Map<PdfObjId, PdfImage> pdfImages = new HashMap<PdfObjId, PdfImage>();
-        for (int i = 0; i <= jbig2Images.lastKey(); i++) {
-            PdfImage jb2Im = jbig2Images.get(i);
-            PdfImageInformation jb2ImInfo = jb2Im.getPdfImageInformation();
-            PdfObjId objId = new PdfObjId(jb2ImInfo.getObjectNum(), jb2ImInfo.getObjectGenNum());
-            pdfImages.put(objId, jb2Im);
+        if (!jbig2Images.isEmpty()) {
+            for (int i = 0; i <= jbig2Images.lastKey(); i++) {
+                PdfImage jb2Im = jbig2Images.get(i);
+                PdfImageInformation jb2ImInfo = jb2Im.getPdfImageInformation();
+                PdfObjId objId = new PdfObjId(jb2ImInfo.getObjectNum(), jb2ImInfo.getObjectGenNum());
+                pdfImages.put(objId, jb2Im);
+            }
         }
         return pdfImages;
     }

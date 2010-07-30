@@ -384,12 +384,12 @@ public class PdfImageProcessor {
         }
 
         if (imagesData == null) {
-            throw new IllegalArgumentException("imagesData is null => nothing to recompress");
+            throw new NullPointerException("imagesData is null => nothing to recompress");
         }
 
         Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
 
-
+       
         PdfReader pdf;
         PdfStamper stp = null;
         try {
