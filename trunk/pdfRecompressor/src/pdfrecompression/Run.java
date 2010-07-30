@@ -38,6 +38,7 @@ public class Run {
         Boolean autoThresh = false;
         Set<Integer> pagesToProcess = null;
         Boolean silent = false;
+        Boolean binarize = false;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-input")) {
@@ -79,32 +80,35 @@ public class Run {
                         if ((defaultThresh > 0.9) || (defaultThresh < 0.5)) {
                             usage();
                         }
-
                     } else {
-                        if (args[i].equalsIgnoreCase("-autoThresh")) {
-                            autoThresh = true;
+                        if (args[i].equalsIgnoreCase("-binarize")) {
+                            binarize = true;
                         } else {
-                            if (args[i].equalsIgnoreCase("-q")) {
-                                silent = true;
+                            if (args[i].equalsIgnoreCase("-autoThresh")) {
+                                autoThresh = true;
                             } else {
-                                if (args[i].equalsIgnoreCase("-pages")) {
-                                    pagesToProcess = new HashSet<Integer>();
-                                    i++;
-                                    if (i >= args.length) {
-                                        usage();
-                                    }
-                                    try {
-                                        while (!args[i].equalsIgnoreCase("-pagesEnd")) {
-                                            int page = Integer.parseInt(args[i]);
-                                            pagesToProcess.add(page);
-                                            i++;
-                                            if (i >= args.length) {
-                                                usage();
-                                            }
+                                if (args[i].equalsIgnoreCase("-q")) {
+                                    silent = true;
+                                } else {
+                                    if (args[i].equalsIgnoreCase("-pages")) {
+                                        pagesToProcess = new HashSet<Integer>();
+                                        i++;
+                                        if (i >= args.length) {
+                                            usage();
                                         }
-                                    } catch (NumberFormatException ex) {
-                                        System.err.println("list of page numbers can contain only numbers");
-                                        usage();
+                                        try {
+                                            while (!args[i].equalsIgnoreCase("-pagesEnd")) {
+                                                int page = Integer.parseInt(args[i]);
+                                                pagesToProcess.add(page);
+                                                i++;
+                                                if (i >= args.length) {
+                                                    usage();
+                                                }
+                                            }
+                                        } catch (NumberFormatException ex) {
+                                            System.err.println("list of page numbers can contain only numbers");
+                                            usage();
+                                        }
                                     }
                                 }
                             }
@@ -130,8 +134,8 @@ public class Run {
 
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
 
-        pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess, silent);
-//        pdfProcessing.extractImagesUsingPdfObjectAccess(pdfFile, password, pagesToProcess, silent);
+        pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess, silent, binarize);
+//        pdfProcessing.extractImagesUsingPdfObjectAccess(pdfFile, password, pagesToProcess, silent, binarize);
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
@@ -299,7 +303,8 @@ public class Run {
                 + "-passwd <password>: password used for decrypting file\n"
                 + "-thresh <valueOfDefaultThresholding>: value that is set to enkoder with switch -t\n"
                 + "-autoThresh: engage automatic thresholding (special comparing between two symbols to make better compression ratio)\n"
-                + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored)\n"
+                + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored) -- now it is not working\n"
+                + "-binarize: enables to process not bi-tonal images (normally only bi-tonal images are processed and other are skipped)\n"
                 + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }
