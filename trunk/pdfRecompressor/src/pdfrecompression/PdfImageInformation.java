@@ -37,7 +37,7 @@ public class PdfImageInformation {
         this.objectNum = objectNum;
     }
 
-    /**
+     /**
      * @return height of image
      */
     public int getHeight() {
