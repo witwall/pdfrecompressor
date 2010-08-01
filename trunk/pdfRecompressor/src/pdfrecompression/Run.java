@@ -35,86 +35,115 @@ public class Run {
         String outputPdf = null;
         String password = null;
         double defaultThresh = 0.85;
+        int bwThresh = 188;
         Boolean autoThresh = false;
         Set<Integer> pagesToProcess = null;
         Boolean silent = false;
         Boolean binarize = false;
 
         for (int i = 0; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-h")) {
+                usage();
+            }
             if (args[i].equalsIgnoreCase("-input")) {
                 i++;
                 if (i >= args.length) {
                     usage();
                 }
                 pdfFile = args[i];
-            } else {
-                if (args[i].equalsIgnoreCase("-pathToEnc")) {
-                    i++;
-                    if (i >= args.length) {
-                        usage();
-                    }
-                    jbig2enc = args[i];
-                } else {
-                    if (args[i].equalsIgnoreCase("-output")) {
-                        i++;
-                        if (i >= args.length) {
-                            usage();
-                        }
-                        outputPdf = args[i];
-                    } else {
-                        if (args[i].equalsIgnoreCase("-passwd")) {
-                            i++;
-                            if (i >= args.length) {
-                                usage();
-                            }
-                            password = args[i];
-                        }
-                    }
-                    if (args[i].equalsIgnoreCase("-thresh")) {
-                        i++;
-                        if (i >= args.length) {
-                            usage();
-                        }
+                continue;
+            }
 
-                        defaultThresh = Double.parseDouble(args[i]);
-                        if ((defaultThresh > 0.9) || (defaultThresh < 0.5)) {
+            if (args[i].equalsIgnoreCase("-pathToEnc")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+                jbig2enc = args[i];
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-output")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+                outputPdf = args[i];
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-passwd")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+                password = args[i];
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-thresh")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+
+                defaultThresh = Double.parseDouble(args[i]);
+                if ((defaultThresh > 0.9) || (defaultThresh < 0.5)) {
+                    System.err.println("Invalid threshold value: (0.5..0.9)\n");
+                    usage();
+                }
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-bw_thresh")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+
+                bwThresh = Integer.parseInt(args[i]);
+                if ((bwThresh < 0) || (bwThresh > 255)) {
+                    System.err.println("Invalid bw threshold value: (0..255)\n");
+                    usage();
+                }
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-binarize")) {
+                binarize = true;
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-autoThresh")) {
+                autoThresh = true;
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-q")) {
+                silent = true;
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-pages")) {
+                pagesToProcess = new HashSet<Integer>();
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+                try {
+                    while (!args[i].equalsIgnoreCase("-pagesEnd")) {
+                        int page = Integer.parseInt(args[i]);
+                        pagesToProcess.add(page);
+                        i++;
+                        if (i >= args.length) {
                             usage();
                         }
-                    } else {
-                        if (args[i].equalsIgnoreCase("-binarize")) {
-                            binarize = true;
-                        } else {
-                            if (args[i].equalsIgnoreCase("-autoThresh")) {
-                                autoThresh = true;
-                            } else {
-                                if (args[i].equalsIgnoreCase("-q")) {
-                                    silent = true;
-                                } else {
-                                    if (args[i].equalsIgnoreCase("-pages")) {
-                                        pagesToProcess = new HashSet<Integer>();
-                                        i++;
-                                        if (i >= args.length) {
-                                            usage();
-                                        }
-                                        try {
-                                            while (!args[i].equalsIgnoreCase("-pagesEnd")) {
-                                                int page = Integer.parseInt(args[i]);
-                                                pagesToProcess.add(page);
-                                                i++;
-                                                if (i >= args.length) {
-                                                    usage();
-                                                }
-                                            }
-                                        } catch (NumberFormatException ex) {
-                                            System.err.println("list of page numbers can contain only numbers");
-                                            usage();
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
+                } catch (NumberFormatException ex) {
+                    System.err.println("list of page numbers can contain only numbers");
+                    usage();
                 }
+                continue;
             }
         }
 
@@ -143,7 +172,7 @@ public class Run {
             }
 //            System.exit(0);
         }
-        runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, silent);
+        runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, bwThresh, silent);
 
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".");
@@ -213,7 +242,7 @@ public class Run {
      * @param jbig2enc represents path to jbig2enc
      * @param image input image to be compressed
      */
-    private static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh, Boolean silent) throws PdfRecompressionException {
+    private static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh, int bwThresh, Boolean silent) throws PdfRecompressionException {
         if (jbig2enc == null) {
             throw new NullPointerException("No path to encoder given!");
         }
@@ -242,6 +271,8 @@ public class Run {
         }
 
         run += " -t " + defaultThresh;
+
+        run += " -T " + bwThresh;
 
         run += images;
         Runtime runtime = Runtime.getRuntime();
@@ -304,8 +335,9 @@ public class Run {
         System.err.println("OPTIONAL parameters:\n"
                 + "-output <outputPdf>: name of output pdf file (if not given used input pdf file\n"
                 + "-passwd <password>: password used for decrypting file\n"
-                + "-thresh <valueOfDefaultThresholding>: value that is set to enkoder with switch -t\n"
+                + "-thresh <valueOfDefaultThresholding>: value that is set to encoder with switch -t\n"
                 + "-autoThresh: engage automatic thresholding (special comparing between two symbols to make better compression ratio)\n"
+                + "-bw_thresh <value of BW thresholding>: sets value for bw thresholding to encoder (in jbig2enc it is switch -T)\n"
                 + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored) -- now it is not working\n"
                 + "-binarize: enables to process not bi-tonal images (normally only bi-tonal images are processed and other are skipped)\n"
                 + "-q: silent mode -- no error output is printed");
