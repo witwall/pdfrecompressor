@@ -122,7 +122,7 @@ public class PdfImageProcessor {
             doc = parser.getDocument();
 
 
-            List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);
+            List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);            
             if (objs != null) {
                 for (COSObject obj : objs) {
                     COSBase subtype = obj.getItem(COSName.SUBTYPE);
@@ -477,7 +477,7 @@ public class PdfImageProcessor {
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         } finally {
-            Run.deleteFilesFromList(imagesData.getJbFileNames(), silent);
+            Tools.deleteFilesFromList(imagesData.getJbFileNames(), silent);
         }
     }
 }
