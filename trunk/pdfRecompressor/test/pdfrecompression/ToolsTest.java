@@ -20,20 +20,19 @@ import static org.junit.Assert.*;
  */
 public class ToolsTest {
 
-    String testDir = "testData";
+    File testDir = new File("testData");
 
     @Before
     public void setUp() throws IOException {
-        File dir = new File(testDir);
-        if (dir.exists()) {
-            File fileOne = new File(testDir + "/test1Delete");
-            File fileTwo = new File(testDir + "/test2Delete");
-            File fileThree = new File(testDir + "/test3Delete");
+        if (testDir.exists()) {
+            File fileOne = new File(testDir, "test1Delete");
+            File fileTwo = new File(testDir, "test2Delete");
+            File fileThree = new File(testDir, "test3Delete");
             fileOne.delete();
             fileTwo.delete();
             fileThree.delete();
         } else {
-            dir.createNewFile();
+            testDir.createNewFile();
         }
 
     }

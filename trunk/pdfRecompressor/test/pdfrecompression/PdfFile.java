@@ -5,6 +5,8 @@
 
 package pdfrecompression;
 
+import java.util.List;
+
 /**
  *
  * @author radim
@@ -15,6 +17,15 @@ public class PdfFile {
     private int numOfLZWImages;
     private int numOfOtherColoredImages;
     private int numOfAllImWithoutLZW;
+    private List<PdfImageInformation> images;
+
+    public List<PdfImageInformation> getImages() {
+        return images;
+    }
+
+    public void setImages(List<PdfImageInformation> images) {
+        this.images = images;
+    }
 
     public PdfFile(String fileName, int numOfBiImages, int numOfLZWImages, int numOfOtherColoredImages) {
         this.fileName = fileName;
@@ -22,6 +33,15 @@ public class PdfFile {
         this.numOfLZWImages = numOfLZWImages;
         this.numOfOtherColoredImages = numOfOtherColoredImages;
         this.numOfAllImWithoutLZW = numOfBiImages + numOfOtherColoredImages;
+    }
+
+    public PdfFile(String fileName, int numOfBiImages, int numOfLZWImages, int numOfOtherColoredImages, List<PdfImageInformation> imInfo) {
+        this.fileName = fileName;
+        this.numOfBiImages = numOfBiImages;
+        this.numOfLZWImages = numOfLZWImages;
+        this.numOfOtherColoredImages = numOfOtherColoredImages;
+        this.numOfAllImWithoutLZW = numOfBiImages + numOfOtherColoredImages;
+        this.images = imInfo;
     }
 
     public String getFileName() {

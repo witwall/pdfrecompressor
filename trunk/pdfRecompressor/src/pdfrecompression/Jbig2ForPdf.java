@@ -39,10 +39,11 @@ public class Jbig2ForPdf {
             throw new PdfRecompressionException("argument pathToDir doesn`t contain path to directory");
         }
 
-        String[] fileNames = directory.list();
+        File[] fileNames = directory.listFiles();
         for (int i = 0; i < fileNames.length; i++) {
-            String fileName = fileNames[i];
-            File checkFile = new File(fileName);
+            File checkFile = fileNames[i];
+            String fileName = checkFile.getName();
+            
             if (checkFile.isDirectory()) {
                 continue;
             }
@@ -66,6 +67,7 @@ public class Jbig2ForPdf {
 
                 try {
                     jbImageInput = new FileInputStream(checkFile);
+                    System.out.println(checkFile.getPath());
                     jbFileNames.add(fileName);
                     if (sizeOfFile > Integer.MAX_VALUE) {
                         throw new PdfRecompressionException("cannot process image greater than " + Integer.MAX_VALUE);
