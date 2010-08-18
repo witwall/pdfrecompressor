@@ -25,7 +25,7 @@ public class Jbig2ForPdf {
 
     private byte[] globalData;
     private SortedMap<Integer, PdfImage> jbig2Images;
-    private List<String> jbFileNames = new ArrayList<String>();
+    private List<File> jbFileNames = new ArrayList<File>();
 
     /**
      * constructor that reads jbig2 images and global data and saves them in array of bytes
@@ -53,7 +53,7 @@ public class Jbig2ForPdf {
                     String suffix = fileName.substring(fileName.length() - 4);
                     try {
                         int suffixInt = Integer.parseInt(suffix);
-                        jbFileNames.add(fileName);
+                        jbFileNames.add(checkFile);
                         jbig2Images.put(suffixInt, new PdfImage(checkFile));
                     } catch (NumberFormatException ex) {
                         continue;
@@ -66,9 +66,8 @@ public class Jbig2ForPdf {
                 FileInputStream jbImageInput = null;
 
                 try {
-                    jbImageInput = new FileInputStream(checkFile);
-                    System.out.println(checkFile.getPath());
-                    jbFileNames.add(fileName);
+                    jbImageInput = new FileInputStream(checkFile);                    
+                    jbFileNames.add(checkFile);
                     if (sizeOfFile > Integer.MAX_VALUE) {
                         throw new PdfRecompressionException("cannot process image greater than " + Integer.MAX_VALUE);
                     }
@@ -180,7 +179,7 @@ public class Jbig2ForPdf {
      * @return files that contains data of images and global data
      *         (output of jbig2enc with parameters -s and -p)
      */
-    public List<String> getJbFileNames() {
+    public List<File> getJbFiles() {
         return jbFileNames;
     }
 }

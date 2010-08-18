@@ -41,9 +41,8 @@ public class PdfImageProcessorTest {
         if (testDir.exists()) {
             Tools.deleteFilesFromList(testDir.listFiles(), false);
         } else {
-            testDir.createNewFile();
+            testDir.mkdir();
         }
-
     }
 
     @After
