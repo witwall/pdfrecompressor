@@ -477,7 +477,7 @@ public class PdfImageProcessor {
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         } finally {
-            Tools.deleteFilesFromList(imagesData.getJbFileNames(), silent);
+            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]), silent);
         }
     }
 }

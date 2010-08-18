@@ -234,7 +234,9 @@ public class Tools {
 
         File[] sourceFiles = sourceDir.listFiles();
         for (int i = 0; i < sourceFiles.length; i++) {
-            copy(sourceFiles[i], destinationDir);
+            if (!sourceFiles[i].isDirectory()) {
+                copy(sourceFiles[i], destinationDir);
+            }
         }
     }
 }
