@@ -1,17 +1,25 @@
 CC=g++
-LEPTONICA=../leptonlib-1.64
+LEPTONICA=../leptonlib-1.65
+TESSERACT=../tesseract-ocr
+TESSERACT_INCLUDES=-I${TESSERACT}/api -I${TESSERACT}/ccmain -I${TESSERACT}/ccutil -I${TESSERACT}/ccstruct -I${TESSERACT}/image -I${TESSERACT}/viewer -I${TESSERACT}/dict -I${TESSERACT}/classify -I${TESSERACT}/display -I${TESSERACT}/wordrec -I${TESSERACT}/cutil -I${TESSERACT}/textord
+#-Iccops
+
 # For example, a fink MacOSX install:
 # EXTRA=-I/sw/include/ -I/sw/include/libpng -I/sw/include/libjpeg -L/sw/lib
-CFLAGS=-I${LEPTONICA}/src -Wall -I/usr/include -L/usr/lib -O3 ${EXTRA}
+CFLAGS=-I${LEPTONICA}/src ${TESSERACT_INCLUDES} -Wall -I/usr/include -L/usr/lib -O3 ${EXTRA}
 
 jbig2: libjbig2enc.a jbig2.cc
-	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/liblept.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm
+	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/liblept.a ${TESSERACT}/api/.libs/libtesseract_api.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm 
 
-libjbig2enc.a: jbig2enc.o jbig2arith.o jbig2sym.o
-	ar -rcv libjbig2enc.a jbig2enc.o jbig2arith.o jbig2sym.o
+libjbig2enc.a: jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o
+	ar -rcv libjbig2enc.a jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o
 
-jbig2enc.o: jbig2enc.cc jbig2arith.h jbig2sym.h jbig2structs.h jbig2segments.h
+jbig2enc.o: jbig2enc.cc jbig2arith.h jbig2sym.h jbig2structs.h jbig2segments.h jbig2comparator.h
 	$(CC) -c jbig2enc.cc $(CFLAGS)
+jbig2comparator.o: jbig2comparator.cc jbig2comparator.h jbig2ocr.h
+	$(CC) -c jbig2comparator.cc $(CFLAGS)
+jbig2ocr.o: jbig2ocr.cc jbig2ocr.h
+	$(CC) -c jbig2ocr.cc $(CFLAGS)
 jbig2arith.o: jbig2arith.cc jbig2arith.h
 	$(CC) -c jbig2arith.cc $(CFLAGS)
 jbig2sym.o: jbig2sym.cc jbig2arith.h
