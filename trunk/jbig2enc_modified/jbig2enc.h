@@ -44,6 +44,8 @@ struct Pix;
 // This is the (opaque) structure which handles multi-page compression.
 struct jbig2ctx;
 
+//class tesseract::TessBaseAPI;
+
 // -----------------------------------------------------------------------------
 // Multipage compression.
 //

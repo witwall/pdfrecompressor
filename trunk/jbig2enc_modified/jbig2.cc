@@ -55,6 +55,24 @@ usage(const char *argv0) {
   fprintf(stderr, "  -v: be verbose\n");
 }
 
+
+// prints Xor of images as Png file
+static void 
+printXorOfPixesAsPng(PIX *first, PIX *second) {
+  PIX * pixd;
+  pixd = pixXor(NULL, first, second);
+  PIX * pixdInvertedColors;
+  pixdInvertedColors = pixInvert(NULL, pixd);
+  
+  char pixdBuf[128];
+  sprintf(pixdBuf, "differences.png");
+  pixWrite(pixdBuf, pixd, IFF_PNG);
+
+  char pixdInvertedColorsBuf[128];
+  sprintf(pixdInvertedColorsBuf, "differences_invertedColors.png");
+  pixWrite(pixdInvertedColorsBuf, pixdInvertedColors, IFF_PNG);
+}
+
 static bool verbose = false;
 
 
@@ -347,6 +365,10 @@ main(int argc, char **argv) {
   struct jbig2ctx *ctx = jbig2_init(threshold, 0.5, 0, 0, !pdfmode, refine ? 10 : -1);
   int pageno = -1;
 
+  PIX * firstImg;
+  PIX * secondImg;
+  int imgNum = 0;
+
   int numsubimages=0, subimage=0, num_pages = 0;
   while (i < argc) {
     if (subimage==numsubimages) {
@@ -404,6 +426,16 @@ main(int argc, char **argv) {
     if (verbose)
       pixInfo(pixt, "thresholded image:");
 
+   // creating bitmap containing differencies between first two images
+   // given as arguments at command line
+/*    if (imgNum == 0) {
+      firstImg = pixCopy(NULL, pixt);
+    } else if (imgNum == 1) {
+      secondImg = pixCopy(NULL, pixt);
+      printXorOfPixesAsPng(firstImg, secondImg);
+    }
+    imgNum++;
+*/
     if (output_threshold) {
       pixWrite(output_threshold, pixt, IFF_PNG);
     }
