@@ -46,6 +46,8 @@
 
 //my includes for comparing templates
 #include "jbig2comparator.h"
+#include "ocrResult.h"
+#include "jbig2ocr.h"
 
 // -----------------------------------------------------------------------------
 // Removes spots which are less than size x size pixels
@@ -135,6 +137,69 @@ jbig2_init(float thresh, float weight, int xres, int yres, bool full_headers,
 }
 
 
+void reindexing(struct jbig2ctx *ctx, int newIndex, int oldIndex) {
+  if (!ctx) {
+    fprintf(stderr, "ctx not given");
+    return;
+  }
+
+  for (int i = 0; i < ctx->classer->naclass->n; i++) {
+    int n;
+    numaGetIValue(ctx->classer->naclass, i, &n);
+    if (n == oldIndex) {
+      numaSetValue(ctx->classer->naclass, i, newIndex);
+    }
+  }
+}
+
+
+/**
+ * unites templates of the same character to chosen charater template
+ * *ctx ............... structure containing templates of symbols
+ * targetChar ......... char that will remain (united char will be replaced by
+ *			this char
+ * *charToBeUnited .... array of indexes to templates that should be replaced 
+ *			by targetCharTemplate
+ *
+ * n .................. number of templates to be united
+ *
+ * returns 0 on success and in error number different from zero
+ */
+// TODO: find out which is the first index and transfer to this position target char
+int uniteTemplatesOfOneChar(struct jbig2ctx *ctx, int targetCharTemplate, 
+	int *charToBeUnited, int n) {
+  if (!ctx) {
+    fprintf(stderr, "ctx not given");
+    return 1;
+  }
+
+  if (!charToBeUnited) {
+    fprintf(stderr, "given no templates for uniting");
+    return 1;
+  }
+
+  if ((targetCharTemplate < 0) || 
+	(targetCharTemplate > pixaGetCount(ctx->classer->pixat))) {
+    fprintf(stderr, "targetCharTemplate out of range");
+    return 1;
+  }
+
+  for (int i = 0; i < n; i++) {
+    int secondTemplate = charToBeUnited[i];
+    if ((secondTemplate < 0) || 
+	(secondTemplate > pixaGetCount(ctx->classer->pixat))) {
+      fprintf(stderr, "charToBeUnited[%d] out of range", i);
+      return 1;
+    }
+    reindexing(ctx, targetCharTemplate, secondTemplate);
+    pixChangeRefcount(ctx->classer->pixat->pix[targetCharTemplate],pixGetRefcount(ctx->classer->pixat->pix[secondTemplate]));
+  }
+
+    
+
+  return 0;
+}
+
 
 /**
  * unites two templates to one template by reassigning indexes in numa struct and 
@@ -161,13 +226,7 @@ int uniteTemplatesWithIndexes(struct jbig2ctx *ctx, int firstTemplateIndex, int 
   pixWrite(secondbuf, ctx->classer->pixat->pix[secondTemplateIndex], IFF_PNG);
 */
 
-  for (int i = 0; i < ctx->classer->naclass->n; i=i+2) {
-    int n;
-    numaGetIValue(ctx->classer->naclass, i, &n);
-    if (n == secondTemplateIndex) {
-      numaSetValue(ctx->classer->naclass, i, firstTemplateIndex);
-    }
-  }
+  reindexing(ctx, secondTemplateIndex, firstTemplateIndex);
 
   pixChangeRefcount(ctx->classer->pixat->pix[firstTemplateIndex],pixGetRefcount(ctx->classer->pixat->pix[secondTemplateIndex]));
 
@@ -190,13 +249,7 @@ int uniteTemplatesWithIndexes(struct jbig2ctx *ctx, int firstTemplateIndex, int 
       return 2;
     }
 
-    for (int i = 0; i < ctx->classer->naclass->n; ++i) {
-      int n;
-      numaGetIValue(ctx->classer->naclass, i, &n);
-      if (n == index) {
-        numaSetValue(ctx->classer->naclass, i, secondTemplateIndex);
-      }
-    }
+    reindexing(ctx, index, secondTemplateIndex);
   }
 
 //  pixChangeRefcount
@@ -219,6 +272,19 @@ jbig2_destroy(struct jbig2ctx *ctx) {
   if (ctx->avg_templates) pixaDestroy(&ctx->avg_templates);
   jbClasserDestroy(&ctx->classer);
   delete ctx;
+}
+
+void autoThreshUsingOCR(struct jbig2ctx *ctx) {
+  if (!ctx) {
+    fprintf(stderr, "missing structure jbig2ctx to process");
+    return;
+  }
+  PIXA *jbPixa = ctx->classer->pixat;
+  std::vector<OcrResult> ocrResults;
+  for (int i = 0; i < pixaGetCount(jbPixa); i++) {
+    PIX *jbPix = jbPixa->pix[i];
+    //recognizeLetter(jbPix);
+  }
 }
 
 
