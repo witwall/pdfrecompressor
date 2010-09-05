@@ -35,6 +35,9 @@
 // -----------------------------------------------------------------------------
 
 #include <pix.h>
+
+#include "ocrResult.h"
+
 #if defined(sun)
 #include <sys/types.h>
 #else
@@ -43,14 +46,6 @@
 
 struct Pix;
 
-struct OcrResult
-{
-    PIX			*pix;         		/* Symbol as PIX                     */
-    l_uint32            *confidence;   		/* Confidence                        */
-    char                *recognizedText;        /* text string associated with pix   */
-};
-typedef struct OcrResult OCRRESULT;
-
-int recognizeLetter(const PIX * pix, char * recognizedText);
+OcrResult * recognizeLetter(PIX * pix);
 
 #endif  // JBIG2OCR_JBIG2_H__

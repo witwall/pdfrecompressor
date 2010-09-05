@@ -25,6 +25,8 @@
 #include <allheaders.h>
 #include <pix.h>
 
+#include "ocrResult.h"
+
 // from tesseract
 #include <baseapi.h>
 //using namespace tesseract;
@@ -45,15 +47,18 @@
 
 /* need repair, linking causes error
 */
-int recognizeLetter(const PIX * pix, char * recognizedText) {
+OcrResult * recognizeLetter(PIX * pix) {
   // using api of tesseract
   tesseract::TessBaseAPI *api;
   api->SetOutputName("recognized");
   api->Init("tesseract", "eng");  
   api->SetPageSegMode(tesseract::PSM_AUTO);
   api->SetImage(pix);
-  recognizedText = api->GetUTF8Text();
+  char * recognizedText = api->GetUTF8Text();
+  int *confidences = api->AllWordConfidences();
+  OcrResult * result = new OcrResult(pix);
+  result->setCharsWithConfidences(recognizedText, confidences, 1);
   fprintf(stdout, "&s\n", recognizedText);
-  return 0;
+  return result;
 }
 
