@@ -161,6 +161,10 @@ public class Jbig2ForPdf {
         return jbig2Images;
     }
 
+    /**
+     *
+     * @return map of images identified by PDF object ID
+     */
     public Map<PdfObjId, PdfImage> getMapOfJbig2Images() {
         Map<PdfObjId, PdfImage> pdfImages = new HashMap<PdfObjId, PdfImage>();
         if (!jbig2Images.isEmpty()) {

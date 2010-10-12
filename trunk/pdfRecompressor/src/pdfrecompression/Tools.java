@@ -20,9 +20,13 @@ import java.util.List;
 public class Tools {
 
     /**
-     * run jbig2enc
+     * run jbig2enc with symbol coding used and output in format suitable for PDF
+     * @param defaultThresh what thresholding value should be used
+     * @param autoThresh if improvement of jbig2enc should be used
+     * @param bwThresh setting black/white thresholding
+     * @param silent turns off error output
      * @param jbig2enc represents path to jbig2enc
-     * @param image input image to be compressed
+     * @param imageList list of images to be compressed
      */
     public static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh, int bwThresh, Boolean silent) throws PdfRecompressionException {
         if (jbig2enc == null) {
@@ -133,6 +137,13 @@ public class Tools {
         }
     }
 
+
+    /**
+     * copy file
+     * @param fromFile what file should be copied
+     * @param toFile where the file should be copied
+     * @throws IOException
+     */
     public static void copy(File fromFile, File toFile) throws IOException {
         
 
@@ -209,6 +220,12 @@ public class Tools {
         }
     }
 
+    /**
+     * copy all files from source directory to destination directory -- used by JUnit tests
+     * @param sourceDir source directory
+     * @param destinationDir destination directory
+     * @throws IOException
+     */
     public static void copyDir(File sourceDir, File destinationDir) throws IOException {
         
         if (sourceDir == null) {

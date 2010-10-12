@@ -6,7 +6,7 @@
 package pdfrecompression;
 
 /**
- *
+ * Represents PDF object identifier
  * @author radim
  */
 public class PdfObjId {

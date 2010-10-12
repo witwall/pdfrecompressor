@@ -28,7 +28,6 @@ import java.util.Map;
 
 import java.util.Set;
 import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSObject;
@@ -36,10 +35,8 @@ import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.common.PDObjectStream;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.pdmodel.graphics.xobject.PDPixelMap;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
@@ -71,6 +68,18 @@ public class PdfImageProcessor {
         return originalImageInformations;
     }
 
+
+    /**
+     * This method extracts images by going through all COSObjects pointed from xref table
+     * @param pdfFile name of input PDF file
+     * @param password password for access to PDF if needed
+     * @param pagesToProcess list of pages which should be processed if null given => processed all pages
+     *      -- not working yet
+     * @param silent -- if true error messages are not written to output otherwise they are
+     * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
+     *      processed because of output with inverted colors)
+     * @throws PdfRecompressionException if problem to extract images from PDF
+     */
     public void extractImagesUsingPdfParser(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
@@ -110,8 +119,6 @@ public class PdfImageProcessor {
         if ((prefix == null) && (pdfFile.length() > 4)) {
             prefix = pdfFile.substring(0, pdfFile.length() - 4);
         }
-
-
 
 
         PDFParser parser = null;
@@ -203,6 +210,19 @@ public class PdfImageProcessor {
         }
     }
 
+
+   /**
+     * @deprecated -- do not use doesn't work properly yet
+     * This method extracts images by going through PDF tree structure
+     * @param pdfFile name of input PDF file
+     * @param password password for access to PDF if needed
+     * @param pagesToProcess list of pages which should be processed if null given => processed all pages
+     *      -- not working yet
+     * @param silent -- if true error messages are not written to output otherwise they are
+     * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
+     *      processed because of output with inverted colors)
+     * @throws PdfRecompressionException if problem to extract images from PDF
+     */
     public void extractImagesUsingPdfObjectAccess(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
