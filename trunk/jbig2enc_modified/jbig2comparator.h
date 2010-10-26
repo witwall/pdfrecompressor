@@ -15,8 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef JBIG2COMPARATOR_JBIG2_H__
-#define JBIG2OCR_COMPARATOR_H__
+#ifndef JBIG2COMPARATOR_H__
+#define JBIG2COMPARATOR_H__
 
 // -----------------------------------------------------------------------------
 // Welcome gentle reader,
@@ -40,8 +40,9 @@
 #include <stdint.h>
 #endif
 
-struct Pix;
+#include <pix.h>
 
+struct Pix;
 
 /**
  * compare two pix and tell if they are equivalent by trying to decide 

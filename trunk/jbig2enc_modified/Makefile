@@ -11,8 +11,9 @@ CFLAGS=-I${LEPTONICA}/src ${TESSERACT_INCLUDES} -Wall -I/usr/include -L/usr/lib 
 jbig2: libjbig2enc.a jbig2.cc
 	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/liblept.a ${TESSERACT}/api/.libs/libtesseract_api.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm 
 
-libjbig2enc.a: jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o ocrResult.o
-	ar -rcv libjbig2enc.a jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o ocrResult.o
+libjbig2enc.a: jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o 
+	# jbig2ocr.o ocrResult.o ocrResults.o
+	ar -rcv libjbig2enc.a jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o #jbig2ocr.o ocrResult.o ocrResults.o
 
 jbig2enc.o: jbig2enc.cc jbig2arith.h jbig2sym.h jbig2structs.h jbig2segments.h jbig2comparator.h
 	$(CC) -c jbig2enc.cc $(CFLAGS)
@@ -22,6 +23,8 @@ jbig2ocr.o: jbig2ocr.cc jbig2ocr.h ocrResult.h
 	$(CC) -c jbig2ocr.cc $(CFLAGS)
 ocrResult.o: ocrResult.h ocrResult.cc
 	$(CC) -c ocrResult.cc $(CFLAGS)
+ocrResults.o: ocrResults.h ocrResults.cc ocrResult.h
+	$(CC) -c ocrResults.cc $(CFLAGS)
 jbig2arith.o: jbig2arith.cc jbig2arith.h
 	$(CC) -c jbig2arith.cc $(CFLAGS)
 jbig2sym.o: jbig2sym.cc jbig2arith.h
