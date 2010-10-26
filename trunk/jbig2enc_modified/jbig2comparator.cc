@@ -184,7 +184,7 @@ int areEquivalent(PIX * firstTemplate, PIX * secondTemplate) {
 
   // checking if they have the same size and depth
   if (!pixSizesEqual(firstTemplate, secondTemplate)) {
-    return 0;
+	  return 0;
   }
 
   l_int32 firstWpl = pixGetWpl(firstTemplate);

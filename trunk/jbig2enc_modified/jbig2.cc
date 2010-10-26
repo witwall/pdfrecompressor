@@ -226,6 +226,7 @@ main(int argc, char **argv) {
   bool segment = false;
   int i;
   bool autoThresh = false;
+  bool hash = true;
 
   for (i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "-h") == 0 ||
@@ -337,6 +338,11 @@ main(int argc, char **argv) {
       continue;
     }
 
+    if (strcmp(argv[i], "-nohash") == 0) {
+      hash = false;
+      continue;
+    }
+
     if (strcmp(argv[i], "-v") == 0) {
       verbose = true;
       continue;
@@ -365,8 +371,8 @@ main(int argc, char **argv) {
   struct jbig2ctx *ctx = jbig2_init(threshold, 0.5, 0, 0, !pdfmode, refine ? 10 : -1);
   int pageno = -1;
 
-  PIX * firstImg;
-  PIX * secondImg;
+  //PIX * firstImg;
+  //PIX * secondImg;
   int imgNum = 0;
 
   int numsubimages=0, subimage=0, num_pages = 0;
@@ -479,7 +485,11 @@ main(int argc, char **argv) {
   }
 
   if (autoThresh) {
-    autoThreshold(ctx);
+    if (hash) {
+      autoThresholdUsingHash(ctx);
+    } else {
+      autoThreshold(ctx);
+    } 
   }
 
 

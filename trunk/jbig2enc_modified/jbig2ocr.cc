@@ -46,8 +46,10 @@
 
 
 /* need repair, linking causes error
-*/
-OcrResult * recognizeLetter(PIX * pix) {
+
+ *  box contains info about position and size of PIX
+ */
+OcrResult * recognizeLetter(PIX * pix, BOX * box) {
   // using api of tesseract
   tesseract::TessBaseAPI *api;
   api->SetOutputName("recognized");

@@ -146,5 +146,6 @@ jbig2_encode_generic(struct Pix *const bw, const bool full_headers,
 //      areEquivalent(PIX *const firstTemplate, PIX *const secondTemplate)
 // -----------------------------------------------------------------------------
 void autoThreshold(struct jbig2ctx *ctx);
+void autoThresholdUsingHash(struct jbig2ctx *ctx);
 
 #endif  // JBIG2ENC_JBIG2_H__
