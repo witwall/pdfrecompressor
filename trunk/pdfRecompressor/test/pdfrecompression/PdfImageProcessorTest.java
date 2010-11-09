@@ -18,6 +18,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
+ * tests class PdfImageProcessor
  *
  * @author radim
  */

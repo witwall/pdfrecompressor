@@ -6,7 +6,7 @@ TESSERACT_INCLUDES=-I${TESSERACT}/api -I${TESSERACT}/ccmain -I${TESSERACT}/ccuti
 
 # For example, a fink MacOSX install:
 # EXTRA=-I/sw/include/ -I/sw/include/libpng -I/sw/include/libjpeg -L/sw/lib
-CFLAGS=-I${LEPTONICA}/src ${TESSERACT_INCLUDES} -Wall -I/usr/include -L/usr/lib -O3 ${EXTRA}
+CFLAGS=-I${LEPTONICA}/src ${TESSERACT_INCLUDES} -Wall -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib -O3 ${EXTRA}
 
 jbig2: libjbig2enc.a jbig2.cc
 	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/liblept.a ${TESSERACT}/api/.libs/libtesseract_api.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm 

@@ -56,6 +56,13 @@
 
 #include <iulib/imgio.h>
 #include <iulib/imglib.h>
+
+//#include <colib/colib.h>
+//#include <iulib/iulib.h>
+//#include <iulib/imgbits.h>
+
+
+using namespace colib;
 using namespace iulib;
 using namespace std;
 
@@ -502,6 +509,93 @@ void printHashMap(map<int, list<int> > &hashedTemplates) {
     fprintf(stderr, "\n");
   }
 }
+
+
+
+//////////////////////////////////////////////////////////////
+// counting holes in a symbol template
+/////////////////////////////////////////////////////////////
+
+
+/*
+// function pad_to
+// adds white border around the image (used for shifting)
+// side effects: byte array is larger and has a white boarder
+void pad_to(bytearray& image,int w,int h) {
+    int iw = image.dim(0);
+    int ih = image.dim(1);
+    int wd = int(w-iw);
+    CHECK(wd>=0);
+    int w0 = wd/2;
+    int w1 = wd-w0;
+    int hd = h-ih;
+    CHECK(hd>=0);
+    int h0 = hd/2;
+    int h1 = hd-h0;
+    bytearray result;
+    result.resize(w,h);
+    result.fill(0); //change with polarity
+    dinit(512,512);
+    dshown(image);
+    dwait();
+    //result[w0:w0+iw,h0:h0+ih] = image
+    for(int i=0;i<iw;i++) for(int j=0;j<ih;j++)
+        result(w0+i,h0+j) = image(i,j);
+    image.clear();
+    image.makelike(result);
+    image.move(result);
+    //printf("came in as %d/%d came out as %d/%d \n",iw,ih,w0+iw,ih+h0);
+}
+
+
+void pad_bin(bytearray& image,int r=5){
+    int w = image.dim(0);
+    int h = image.dim(1);
+    w = r*int((w+r-1)/r);
+    h = r*int((h+r-1)/r);
+    //printf("PAD_BIN %d/%d \n",w,h);
+    pad_to(image,w,h);
+}
+
+
+//convenience function for pad_to
+void pad_by(bytearray& image, int w=3, int h=3) {
+    int iw = image.dim(0);
+    int ih = image.dim(1);
+    pad_to(image,iw+2*w,ih+2*h);
+}
+
+
+// function add
+// calls addKeyed
+// determines fast characteristics of image to search in appropriate bin
+// calls padding functions so that images can be shifted
+// wraper for all the detailed "add" stuff
+int getNumOfHoles(bytearray& Bchar, int cls) {
+    int nholes=0;
+    int r=5;
+    pad_bin(Bchar);
+    int hole_bins = 1;
+    if(hole_bins) {
+        //_,nholes = measurements.label(1-binary_closing(pad_by(char,2,2)))
+        bytearray Bchar_temp;
+        intarray img;
+        copy(Bchar_temp,Bchar);
+        pad_by(Bchar_temp);
+        binary_close_circle(Bchar_temp,1);
+	//invert(Bchar_temp); // invert treba dodelat
+        copy(img,Bchar_temp);
+        label_components(img,false);
+        narray<rectangle> bboxes;
+        bounding_boxes(bboxes,img);
+        nholes = bboxes.length()-1;
+        //printf("InCpp#h=%d\n",nholes);
+        //dinit(512,512);
+        //dshown(Bchar_temp);
+        //dwait();
+    }
+}
+*/
 
 
 void countHash(PIX * pix, std::map<int, std::list<int> > &hashMap, int templateIdx) {
