@@ -69,7 +69,7 @@ public class PdfImageProcessor {
     }
 
 
-    /**
+       /**
      * This method extracts images by going through all COSObjects pointed from xref table
      * @param pdfFile name of input PDF file
      * @param password password for access to PDF if needed
@@ -119,6 +119,129 @@ public class PdfImageProcessor {
         if ((prefix == null) && (pdfFile.length() > 4)) {
             prefix = pdfFile.substring(0, pdfFile.length() - 4);
         }
+
+
+        PDFParser parser = null;
+        COSDocument doc = null;
+        try {
+            parser = new PDFParser(inputStream);
+            parser.parse();
+            doc = parser.getDocument();
+
+
+            List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);
+            if (objs != null) {
+                for (COSObject obj : objs) {
+                    COSBase subtype = obj.getItem(COSName.SUBTYPE);
+                    if (subtype.toString().equalsIgnoreCase("COSName{Image}")) {
+                        COSBase imageObj = obj.getObject();
+                        COSBase cosNameObj = obj.getItem(COSName.NAME);
+                        String key;
+                        if (cosNameObj != null) {
+                            String cosNameKey = cosNameObj.toString();
+                            int startOfKey = cosNameKey.indexOf("{") + 1;
+                            key = cosNameKey.substring(startOfKey, cosNameKey.length() - 1);
+                        } else {
+                            key = "im0";
+                        }
+                        int objectNum = obj.getObjectNumber().intValue();
+                        int genNum = obj.getGenerationNumber().intValue();
+                        PDXObjectImage image = (PDXObjectImage) PDXObjectImage.createXObject(imageObj);
+
+                        PDStream pdStr = new PDStream(image.getCOSStream());
+                        List filters = pdStr.getFilters();
+
+                        if ((image.getBitsPerComponent() > 1) && (!binarize)) {
+                            if (!silent) {
+                                System.err.println("It is not a bitonal image => skipping");
+                            }
+                            continue;
+                        }
+
+                        // at this moment for preventing bad output (bad coloring) from LZWDecode filter
+                        if (filters.contains(COSName.LZW_DECODE.getName())) {
+                            if (!silent) {
+                                System.err.println("This is LZWDecoded => skipping");
+                            }
+                            continue;
+
+                        }
+
+                        // detection of unsupported filters by pdfBox library
+                        if (filters.contains("JBIG2Decode")) {
+                            if (!silent) {
+                                System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                            }
+                            continue;
+                        }
+
+                        if (filters.contains("JPXDecode")) {
+                            if (!silent) {
+                                System.err.println("Unsupported filter JPXDecode => skipping");
+                            }
+                            continue;
+                        }
+
+                        String name = getUniqueFileName(prefix, image.getSuffix());
+//                        System.out.println("Writing image:" + name);
+                        image.write2file(name);
+
+
+                        PdfImageInformation pdfImageInfo =
+                                new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
+                        originalImageInformations.add(pdfImageInfo);
+
+                        namesOfImages.add(name + "." + image.getSuffix());
+
+                    }
+//                    }
+                }
+            }
+        } catch (IOException ex) {
+            throw new PdfRecompressionException("Unable to parse PDF document", ex);
+        } finally {
+            if (doc != null) {
+                try {
+                    doc.close();
+                } catch (IOException ex) {
+                    throw new PdfRecompressionException(ex);
+                }
+            }
+        }
+    }
+
+    /**
+     * This method extracts images by going through all COSObjects pointed from xref table
+     * @param pdfFile name of input PDF file
+     * @param password password for access to PDF if needed
+     * @param pagesToProcess list of pages which should be processed if null given => processed all pages
+     *      -- not working yet
+     * @param silent -- if true error messages are not written to output otherwise they are
+     * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
+     *      processed because of output with inverted colors)
+     * @throws PdfRecompressionException if problem to extract images from PDF
+     */
+    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+        if (binarize == null) {
+            binarize = false;
+        }
+        // checking arguments and setting appropriate variables
+      
+
+        InputStream inputStream = null;
+        if (password != null) {
+            try {
+                ByteArrayOutputStream decryptedOutputStream = null;
+                PdfReader reader = new PdfReader(is, password.getBytes());
+                PdfStamper stamper = new PdfStamper(reader, decryptedOutputStream);
+                stamper.close();
+                inputStream = new ByteArrayInputStream(decryptedOutputStream.toByteArray());
+            } catch (DocumentException ex) {
+                throw new PdfRecompressionException(ex);
+            } catch (IOException ex) {
+                throw new PdfRecompressionException("Reading file caused exception", ex);
+            }
+        } 
 
 
         PDFParser parser = null;

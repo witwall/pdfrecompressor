@@ -37,6 +37,7 @@ public class Run {
         Set<Integer> pagesToProcess = null;
         Boolean silent = false;
         Boolean binarize = false;
+        String basename = "output";
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-h")) {
@@ -75,6 +76,15 @@ public class Run {
                     usage();
                 }
                 password = args[i];
+                continue;
+            }
+
+            if (args[i].equalsIgnoreCase("-basename")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                }
+                basename = args[i];
                 continue;
             }
 
@@ -169,10 +179,10 @@ public class Run {
             }
 //            System.exit(0);
         }
-        Tools.runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, bwThresh, silent);
+        Tools.runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, bwThresh, basename, silent);
 
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
-        Jbig2ForPdf pdfImages = new Jbig2ForPdf(".");
+        Jbig2ForPdf pdfImages = new Jbig2ForPdf(".", basename);
         pdfImages.setJbig2ImagesInfo(pdfImagesInfo);
 
         OutputStream out = null;
@@ -241,6 +251,7 @@ public class Run {
                 + "-bw_thresh <value of BW thresholding>: sets value for bw thresholding to encoder (in jbig2enc it is switch -T)\n"
                 + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored) -- now it is not working\n"
                 + "-binarize: enables to process not bi-tonal images (normally only bi-tonal images are processed and other are skipped)\n"
+                + "-basename <basename> sets the basename for output files of jbig2enc"
                 + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }

@@ -28,7 +28,8 @@ public class Tools {
      * @param jbig2enc represents path to jbig2enc
      * @param imageList list of images to be compressed
      */
-    public static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, Boolean autoThresh, int bwThresh, Boolean silent) throws PdfRecompressionException {
+    public static void runJbig2enc(String jbig2enc, List<String> imageList, double defaultThresh, 
+            Boolean autoThresh, int bwThresh, String basename, Boolean silent) throws PdfRecompressionException {
         if (jbig2enc == null) {
             throw new NullPointerException("No path to encoder given!");
         }
@@ -51,7 +52,7 @@ public class Tools {
         }
 
 
-        String run = jbig2enc + " -s -p";
+        String run = jbig2enc + " -s -p -b " + basename;
         if (autoThresh) {
             run += " -autoThresh";
         }
