@@ -32,7 +32,7 @@ public class Jbig2ForPdf {
      * @param pathToDir represents path to directory containing images data and global data
      * @throws pdfrecompression.PdfRecompressionException
      */
-    public Jbig2ForPdf(String pathToDir) throws PdfRecompressionException {
+    public Jbig2ForPdf(String pathToDir, String basename) throws PdfRecompressionException {
         jbig2Images = new TreeMap<Integer, PdfImage>();
         File directory = new File(pathToDir);
         if (!directory.isDirectory()) {
@@ -49,7 +49,7 @@ public class Jbig2ForPdf {
             }
 
             if ((fileName.lastIndexOf(".") + 1) == (fileName.length() - 4)) {
-                if (fileName.startsWith("output")) {
+                if (fileName.startsWith(basename)) {
                     String suffix = fileName.substring(fileName.length() - 4);
                     try {
                         int suffixInt = Integer.parseInt(suffix);
@@ -60,7 +60,7 @@ public class Jbig2ForPdf {
                     }
                 }
             }
-            if (fileName.equals("output.sym")) {
+            if (fileName.equals(basename + ".sym")) {
                 Long sizeOfFile = checkFile.length();
                 int imageSize = 0;
                 FileInputStream jbImageInput = null;

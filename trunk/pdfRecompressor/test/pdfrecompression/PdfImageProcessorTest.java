@@ -133,7 +133,7 @@ public class PdfImageProcessorTest {
                 File dictData = new File(dict, pdf.getFileName());
                 Tools.deleteFilesFromList(testDir.listFiles(), false);
                 Tools.copyDir(dictData, testDir);
-                Jbig2ForPdf pdfImages = new Jbig2ForPdf(testDir.getPath());
+                Jbig2ForPdf pdfImages = new Jbig2ForPdf(testDir.getPath(), "output");
                 pdfImages.setJbig2ImagesInfo(pdf.getImages());
                 PdfImageProcessor pdfProcessor = new PdfImageProcessor();
                 pdfProcessor.replaceImageUsingIText(dictData + File.separator + pdf.getFileName() + ".pdf", out,
