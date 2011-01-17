@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,22 +47,29 @@ public class Tools {
             return;
         }
 
-        String images = "";
-        for (int i = 0; i < imageList.size(); i++) {
-            images = images + " " + imageList.get(i);
-        }
+              
 
+        List<String> toRun = new ArrayList<String>();
 
-        String run = jbig2enc + " -s -p -b " + basename;
+        toRun.add(jbig2enc);
+        toRun.add("-s");
+        toRun.add("-p");
+        toRun.add("-b");
+        toRun.add(basename);
+        toRun.add("-t");
+        toRun.add(String.valueOf(defaultThresh));
+        toRun.add("-T");
+        toRun.add(String.valueOf(bwThresh));
+
         if (autoThresh) {
-            run += " -autoThresh";
+            toRun.add("-autoThresh");
         }
 
-        run += " -t " + defaultThresh;
+        toRun.addAll(imageList);
 
-        run += " -T " + bwThresh;
-
-        run += images;
+        String[] run = new String[toRun.size()];
+        run = toRun.toArray(run);
+        
         Runtime runtime = Runtime.getRuntime();
         Process pr1;
         try {
@@ -88,10 +96,10 @@ public class Tools {
 
 
                 System.out.println(line);
-            }
+            }            
             if (exitValue != 0) {
                 if (!silent) {
-                    System.err.println(run + " ended with error " + exitValue);
+                    System.err.println("jbig2enc ended with error " + exitValue);
                 }
                 deleteFilesFromList(imageList, silent);
                 System.exit(3);
@@ -99,11 +107,12 @@ public class Tools {
         } catch (IOException ex) {
             if (!silent) {
                 System.err.println("runJbig2enc caused IOException");
+                ex.printStackTrace(System.err);
             }
-            ex.printStackTrace();
+            
         } catch (InterruptedException ex2) {
             if (!silent) {
-                ex2.printStackTrace();
+                ex2.printStackTrace(System.err);
             }
         } finally {
             deleteFilesFromList(imageList, silent);
@@ -208,14 +217,14 @@ public class Tools {
                 try {
                     from.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                 }
             }
             if (to != null) {
                 try {
                     to.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                 }
             }
         }
