@@ -205,7 +205,7 @@ public class Run {
         } catch (IOException ex) {
             if (!silent) {
                 System.err.println("writing output to the file caused error");
-                ex.printStackTrace();
+                ex.printStackTrace(System.err);
             }
             System.exit(2);
         } finally {
@@ -214,7 +214,7 @@ public class Run {
                     out.close();
                 } catch (IOException ex2) {
                     if (!silent) {
-                        ex2.printStackTrace();
+                        ex2.printStackTrace(System.err);
                     }
                 }
             }

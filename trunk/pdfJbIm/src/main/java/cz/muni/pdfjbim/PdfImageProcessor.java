@@ -593,6 +593,9 @@ public class PdfImageProcessor {
                 if ((obj != null) && (obj.isIndirect())) {
 
                     PdfDictionary tg = (PdfDictionary) PdfReader.getPdfObject(obj);
+                    if (tg == null) {
+                        continue;
+                    }
                     PdfName type =
                             (PdfName) PdfReader.getPdfObject(tg.get(PdfName.SUBTYPE));
                     if (PdfName.IMAGE.equals(type)) {
