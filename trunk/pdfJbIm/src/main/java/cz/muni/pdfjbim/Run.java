@@ -1,3 +1,4 @@
+
 /*
  *  Copyright 2010 Radim Hatlapatka.
  *
@@ -44,14 +45,16 @@ public class Run {
         String pdfFile = null;
         String outputPdf = null;
         String password = null;
-        double defaultThresh = 0.85;
-        int bwThresh = 188;
+        Double defaultThresh = 0.85;
+        Integer bwThresh = 188;
         Boolean autoThresh = false;
         Set<Integer> pagesToProcess = null;
         Boolean silent = false;
         Boolean binarize = false;
         String basename = "output";
 
+
+        // parsing arguments of main method
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-h")) {
                 usage();
@@ -175,12 +178,14 @@ public class Run {
             outputPdf = pdfFile;
         }
 
+        // originalPdf is an input PDF which shall be recompressed
         File originalPdf = new File(pdfFile);
 
-//        System.out.println("Processing " + pdfFile);
+        // initialization for counting time of recompression
         long sizeOfInputPdf = new File(pdfFile).length();
         double startTime = System.currentTimeMillis();
 
+        // PdfImageProcessor handles extraction of pdf and putting recompressed images
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
 
         pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess, silent, binarize);
@@ -192,7 +197,13 @@ public class Run {
             }
 //            System.exit(0);
         }
-        Tools.runJbig2enc(jbig2enc, jbig2encInputImages, defaultThresh, autoThresh, bwThresh, basename, silent);
+        Jbig2enc jbig2 = new Jbig2enc(jbig2enc);
+
+        jbig2.setAutoThresh(autoThresh); // engages modified version of the jbig2 encoder
+        jbig2.setBwThresh(bwThresh);
+        jbig2.setDefaultThresh(defaultThresh);
+        jbig2.setSilent(silent);
+        jbig2.run(jbig2encInputImages, basename);
 
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".", basename);

@@ -83,7 +83,7 @@ public class PdfImageProcessor {
     }
 
 
-       /**
+   /**
      * This method extracts images by going through all COSObjects pointed from xref table
      * @param pdfFile name of input PDF file
      * @param password password for access to PDF if needed
