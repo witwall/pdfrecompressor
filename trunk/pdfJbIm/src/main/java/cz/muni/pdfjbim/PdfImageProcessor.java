@@ -82,9 +82,46 @@ public class PdfImageProcessor {
         return originalImageInformations;
     }
 
+    
+/**
+     * This method extracts images from PDF
+     * @param pdfFile input PDF file
+     * @param password password for access to PDF if needed
+     * @param pagesToProcess list of pages which should be processed if null given => processed all pages
+     *      -- not working yet
+     * @param silent -- if true error messages are not written to output otherwise they are
+     * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
+     *      processed because of output with inverted colors)
+     * @throws PdfRecompressionException if problem to extract images from PDF
+     */
+    public void extractImages(File pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+         if (binarize == null) {
+            binarize = false;
+        }
+        // checking arguments and setting appropriate variables
+        if (pdfFile == null) {
+            throw new IllegalArgumentException("pdfFile");
+        }
+
+        String prefix = null;
+
+        // if prefix is not set then prefix set to name of pdf without .pdf
+        // if pdfFile has unconsistent name (without suffix .pdf) and name longer than 4 chars then last for chars are removed
+        // and this string set as prefix
+        if ((prefix == null) && (pdfFile.length() > 4)) {
+            String fileName = pdfFile.getName();
+            prefix = fileName.substring(0, fileName.length() - 4);
+        }
+        try {
+            InputStream is = new FileInputStream(pdfFile);
+            extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, silent, binarize);
+        } catch (FileNotFoundException ex) {
+            throw new PdfRecompressionException("File doesn't exist", ex);
+        }
+    }
 
    /**
-     * This method extracts images by going through all COSObjects pointed from xref table
+     * This method extracts images from PDF
      * @param pdfFile name of input PDF file
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
@@ -94,7 +131,7 @@ public class PdfImageProcessor {
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImagesUsingPdfParser(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImages(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
         }
@@ -105,28 +142,6 @@ public class PdfImageProcessor {
 
         String prefix = null;
 
-        InputStream inputStream = null;
-        if (password != null) {
-            try {
-                ByteArrayOutputStream decryptedOutputStream = null;
-                PdfReader reader = new PdfReader(pdfFile, password.getBytes());
-                PdfStamper stamper = new PdfStamper(reader, decryptedOutputStream);
-                stamper.close();
-                inputStream = new ByteArrayInputStream(decryptedOutputStream.toByteArray());
-            } catch (DocumentException ex) {
-                throw new PdfRecompressionException(ex);
-            } catch (IOException ex) {
-                throw new PdfRecompressionException("Reading file caused exception", ex);
-            }
-        } else {
-            try {
-                inputStream = new FileInputStream(pdfFile);
-            } catch (FileNotFoundException ex) {
-                throw new PdfRecompressionException("File wasn't found", ex);
-            }
-        }
-
-
         // if prefix is not set then prefix set to name of pdf without .pdf
         // if pdfFile has unconsistent name (without suffix .pdf) and name longer than 4 chars then last for chars are removed
         // and this string set as prefix
@@ -134,93 +149,11 @@ public class PdfImageProcessor {
             prefix = pdfFile.substring(0, pdfFile.length() - 4);
         }
 
-
-        PDFParser parser = null;
-        COSDocument doc = null;
         try {
-            parser = new PDFParser(inputStream);
-            parser.parse();
-            doc = parser.getDocument();
-
-
-            List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);
-            if (objs != null) {
-                for (COSObject obj : objs) {
-                    COSBase subtype = obj.getItem(COSName.SUBTYPE);
-                    if (subtype.toString().equalsIgnoreCase("COSName{Image}")) {
-                        COSBase imageObj = obj.getObject();
-                        COSBase cosNameObj = obj.getItem(COSName.NAME);
-                        String key;
-                        if (cosNameObj != null) {
-                            String cosNameKey = cosNameObj.toString();
-                            int startOfKey = cosNameKey.indexOf("{") + 1;
-                            key = cosNameKey.substring(startOfKey, cosNameKey.length() - 1);
-                        } else {
-                            key = "im0";
-                        }
-                        int objectNum = obj.getObjectNumber().intValue();
-                        int genNum = obj.getGenerationNumber().intValue();
-                        PDXObjectImage image = (PDXObjectImage) PDXObjectImage.createXObject(imageObj);
-
-                        PDStream pdStr = new PDStream(image.getCOSStream());
-                        List filters = pdStr.getFilters();
-
-                        if ((image.getBitsPerComponent() > 1) && (!binarize)) {
-                            if (!silent) {
-                                System.err.println("It is not a bitonal image => skipping");
-                            }
-                            continue;
-                        }
-
-                        // at this moment for preventing bad output (bad coloring) from LZWDecode filter
-                        if (filters.contains(COSName.LZW_DECODE.getName())) {
-                            if (!silent) {
-                                System.err.println("This is LZWDecoded => skipping");
-                            }
-                            continue;
-
-                        }
-
-                        // detection of unsupported filters by pdfBox library
-                        if (filters.contains("JBIG2Decode")) {
-                            if (!silent) {
-                                System.err.println("Allready compressed according to JBIG2 standard => skipping");
-                            }
-                            continue;
-                        }
-
-                        if (filters.contains("JPXDecode")) {
-                            if (!silent) {
-                                System.err.println("Unsupported filter JPXDecode => skipping");
-                            }
-                            continue;
-                        }
-
-                        String name = getUniqueFileName(prefix, image.getSuffix());
-//                        System.out.println("Writing image:" + name);
-                        image.write2file(name);
-
-
-                        PdfImageInformation pdfImageInfo =
-                                new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
-                        originalImageInformations.add(pdfImageInfo);
-
-                        namesOfImages.add(name + "." + image.getSuffix());
-
-                    }
-//                    }
-                }
-            }
-        } catch (IOException ex) {
-            throw new PdfRecompressionException("Unable to parse PDF document", ex);
-        } finally {
-            if (doc != null) {
-                try {
-                    doc.close();
-                } catch (IOException ex) {
-                    throw new PdfRecompressionException(ex);
-                }
-            }
+            InputStream is = new FileInputStream(pdfFile);
+            extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, silent, binarize);
+        } catch (FileNotFoundException ex) {
+            throw new PdfRecompressionException("File doesn't exist", ex);
         }
     }
 
@@ -235,13 +168,34 @@ public class PdfImageProcessor {
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImages(InputStream is, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
         }
         // checking arguments and setting appropriate variables
-      
+        String prefix = PdfImageProcessor.class.getName();
+        extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, silent, binarize);
+    }
 
+
+
+    /**
+     * This method extracts images by going through all COSObjects pointed from xref table
+     * @param is input stream containing PDF file
+     * @param password password for access to PDF if needed
+     * @param pagesToProcess list of pages which should be processed if null given => processed all pages
+     *      -- not working yet
+     * @param silent -- if true error messages are not written to output otherwise they are
+     * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
+     *      processed because of output with inverted colors)
+     * @throws PdfRecompressionException if problem to extract images from PDF
+     */
+    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+        // checking arguments and setting appropriate variables
+        if (binarize == null) {
+            binarize = false;
+        }
+        
         InputStream inputStream = null;
         if (password != null) {
             try {
@@ -255,7 +209,9 @@ public class PdfImageProcessor {
             } catch (IOException ex) {
                 throw new PdfRecompressionException("Reading file caused exception", ex);
             }
-        } 
+        } else {
+            inputStream = is;
+        }
 
 
         PDFParser parser = null;
@@ -526,10 +482,10 @@ public class PdfImageProcessor {
     /**
      * replace images by they recompressed version according to JBIG2 standard
      * positions and image data given in imagesData
-     * @param pdfName represents name of original pdf file
-     * @param os represents output stream for writing changed pdf file
+     * @param pdfName represents name of original PDF file
+     * @param os represents output stream for writing changed PDF file
      * @param imagesData contains compressed images according to JBIG2 standard and informations about them
-     * @throws PdfRecompressionException if version of pdf is lower than 1.4 or was catch DocumentException or IOException
+     * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
      */
     public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData, Boolean silent) throws PdfRecompressionException {
         if (pdfName == null) {
