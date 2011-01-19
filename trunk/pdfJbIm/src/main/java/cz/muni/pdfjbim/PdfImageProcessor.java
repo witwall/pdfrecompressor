@@ -66,6 +66,7 @@ public class PdfImageProcessor {
     private int imageCounter = 1;
     private List<String> namesOfImages = new ArrayList<String>();
     private List<PdfImageInformation> originalImageInformations = new ArrayList<PdfImageInformation>();
+    private boolean silent = false;
 
     /**
      * @return names of images in a list
@@ -82,6 +83,19 @@ public class PdfImageProcessor {
         return originalImageInformations;
     }
 
+    public Boolean getSilent() {
+        return silent;
+    }
+
+    /**
+     * if silent is set to true no error output is printed     *
+     * @param silent sets if error output shall be written to stderr or not
+     */
+    public void setSilent(boolean silent) {
+        this.silent = silent;
+    }
+
+
     
 /**
      * This method extracts images from PDF
@@ -89,12 +103,11 @@ public class PdfImageProcessor {
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
      *      -- not working yet
-     * @param silent -- if true error messages are not written to output otherwise they are
      * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImages(File pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImages(File pdfFile, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
          if (binarize == null) {
             binarize = false;
         }
@@ -114,7 +127,7 @@ public class PdfImageProcessor {
         }
         try {
             InputStream is = new FileInputStream(pdfFile);
-            extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, silent, binarize);
+            extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
         } catch (FileNotFoundException ex) {
             throw new PdfRecompressionException("File doesn't exist", ex);
         }
@@ -125,13 +138,12 @@ public class PdfImageProcessor {
      * @param pdfFile name of input PDF file
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
-     *      -- not working yet
-     * @param silent -- if true error messages are not written to output otherwise they are
+     *      -- not working yet     
      * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImages(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImages(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
         }
@@ -151,7 +163,7 @@ public class PdfImageProcessor {
 
         try {
             InputStream is = new FileInputStream(pdfFile);
-            extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, silent, binarize);
+            extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
         } catch (FileNotFoundException ex) {
             throw new PdfRecompressionException("File doesn't exist", ex);
         }
@@ -163,18 +175,17 @@ public class PdfImageProcessor {
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
      *      -- not working yet
-     * @param silent -- if true error messages are not written to output otherwise they are
      * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImages(InputStream is, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImages(InputStream is, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
         }
         // checking arguments and setting appropriate variables
         String prefix = PdfImageProcessor.class.getName();
-        extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, silent, binarize);
+        extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
     }
 
 
@@ -185,12 +196,11 @@ public class PdfImageProcessor {
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
      *      -- not working yet
-     * @param silent -- if true error messages are not written to output otherwise they are
      * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
         // checking arguments and setting appropriate variables
         if (binarize == null) {
             binarize = false;
@@ -487,7 +497,7 @@ public class PdfImageProcessor {
      * @param imagesData contains compressed images according to JBIG2 standard and informations about them
      * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
      */
-    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData, Boolean silent) throws PdfRecompressionException {
+    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData) throws PdfRecompressionException {
         if (pdfName == null) {
             throw new NullPointerException("pdfName");
         }

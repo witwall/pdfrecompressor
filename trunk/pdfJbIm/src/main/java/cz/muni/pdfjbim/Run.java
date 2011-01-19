@@ -186,9 +186,11 @@ public class Run {
 
         // PdfImageProcessor handles extraction of pdf and putting recompressed images
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
+        
+        pdfProcessing.setSilent(silent); // if stderr output shall be printed or not
 
         // image extraction
-        pdfProcessing.extractImages(pdfFile, password, pagesToProcess, silent, binarize);
+        pdfProcessing.extractImages(pdfFile, password, pagesToProcess, binarize);
 
         // returns names of extracted images as List
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
@@ -231,7 +233,7 @@ public class Run {
 
             // replaces images with their recompressed version based on image info and is stored
             // in output stream (out)
-            pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages, silent);
+            pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages);
 
             // counting some logging info concerning sizes of input vs output
             long sizeOfOutputPdf = fileName.length();
