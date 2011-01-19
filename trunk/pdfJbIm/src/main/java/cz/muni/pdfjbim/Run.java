@@ -15,7 +15,6 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
 
 import java.io.File;
@@ -188,29 +187,38 @@ public class Run {
         // PdfImageProcessor handles extraction of pdf and putting recompressed images
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
 
+        // image extraction
         pdfProcessing.extractImages(pdfFile, password, pagesToProcess, silent, binarize);
-//        pdfProcessing.extractImagesUsingPdfObjectAccess(pdfFile, password, pagesToProcess, silent, binarize);
+
+        // returns names of extracted images as List
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
                 System.out.println("No images in " + pdfFile + " to recompress");
             }
 //            System.exit(0);
+        } else {
+            // setting parameters for jbig2enc
+            Jbig2enc jbig2 = new Jbig2enc(jbig2enc);
+
+            jbig2.setAutoThresh(autoThresh); // engages modified version of the jbig2 encoder
+            jbig2.setBwThresh(bwThresh);
+            jbig2.setDefaultThresh(defaultThresh);
+            jbig2.setSilent(silent);
+
+            // engages jbig2enc with set parameters and creates output files based on basename
+            jbig2.run(jbig2encInputImages, basename);
         }
-        Jbig2enc jbig2 = new Jbig2enc(jbig2enc);
 
-        jbig2.setAutoThresh(autoThresh); // engages modified version of the jbig2 encoder
-        jbig2.setBwThresh(bwThresh);
-        jbig2.setDefaultThresh(defaultThresh);
-        jbig2.setSilent(silent);
-        jbig2.run(jbig2encInputImages, basename);
-
+        // getting informations about images that were in PDF such as size, position in PDF,...
         List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
+
+        // reading output of encoder and associating with informations about them
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".", basename);
         pdfImages.setJbig2ImagesInfo(pdfImagesInfo);
 
+        // creating output
         OutputStream out = null;
-
         try {
             File fileName = new File(outputPdf);
 
@@ -220,7 +228,12 @@ public class Run {
                 System.out.println("file " + outputPdf + " already exist => will be rewriten");
             }
             out = new FileOutputStream(fileName);
+
+            // replaces images with their recompressed version based on image info and is stored
+            // in output stream (out)
             pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages, silent);
+
+            // counting some logging info concerning sizes of input vs output
             long sizeOfOutputPdf = fileName.length();
             float saved = (((float) (sizeOfInputPdf - sizeOfOutputPdf)) / sizeOfInputPdf) * 100;
             System.out.println("Size of pdf before recompression = " + sizeOfInputPdf);
@@ -244,6 +257,8 @@ public class Run {
             }
         }
 
+
+        // counting some logging info concernig time taken by recompressor
         int time = (int) (System.currentTimeMillis() - startTime) / 1000;
         int hour = time / 3600;
         int min = (time % 3600) / 60;
@@ -251,12 +266,7 @@ public class Run {
         System.out.print("\n" + pdfFile + " succesfully recompressed in ");
         System.out.println(String.format("%02d:%02d:%02d", hour, min, sec));
         System.out.println("Totaly was recompressed " + pdfImages.getMapOfJbig2Images().size() + " images");
-
     }
-
-
-
-
 
     /**
      * write usage of main method
