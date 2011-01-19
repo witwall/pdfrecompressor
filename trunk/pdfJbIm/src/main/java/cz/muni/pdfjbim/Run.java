@@ -188,7 +188,7 @@ public class Run {
         // PdfImageProcessor handles extraction of pdf and putting recompressed images
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
 
-        pdfProcessing.extractImagesUsingPdfParser(pdfFile, password, pagesToProcess, silent, binarize);
+        pdfProcessing.extractImages(pdfFile, password, pagesToProcess, silent, binarize);
 //        pdfProcessing.extractImagesUsingPdfObjectAccess(pdfFile, password, pagesToProcess, silent, binarize);
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {

@@ -14,7 +14,6 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
 
 import java.io.BufferedReader;
@@ -29,6 +28,7 @@ import java.util.List;
  * @author Radim Hatlapatka (208155@mail.muni.cz)
  */
 public class Jbig2enc {
+
     private String jbig2enc;
     private double defaultThresh = 0.85;
     private Boolean autoThresh = false;
@@ -51,14 +51,19 @@ public class Jbig2enc {
     }
 
     public void setAutoThresh(Boolean autoThresh) {
-        this.autoThresh = autoThresh;
+        if (autoThresh != null) {
+            this.autoThresh = autoThresh;
+        }
     }
 
     public Integer getBwThresh() {
         return bwThresh;
     }
 
-    public void setBwThresh(Integer bwThresh) {
+    public void setBwThresh(int bwThresh) {
+        if ((bwThresh < 0) || (bwThresh > 255)) {
+            throw new IllegalArgumentException("bwThresh");
+        }
         this.bwThresh = bwThresh;
     }
 
@@ -66,7 +71,10 @@ public class Jbig2enc {
         return defaultThresh;
     }
 
-    public void setDefaultThresh(Double defaultThresh) {
+    public void setDefaultThresh(double defaultThresh) {
+        if ((defaultThresh < 0.4) || (defaultThresh > 0.9)) {
+            throw new IllegalArgumentException("defaultThresh");
+        }
         this.defaultThresh = defaultThresh;
     }
 
@@ -82,12 +90,11 @@ public class Jbig2enc {
         return silent;
     }
 
-    public void setSilent(Boolean silent) {
+    public void setSilent(boolean silent) {
         this.silent = silent;
     }
-    
-    
-     /**
+
+    /**
      * run jbig2enc with symbol coding used and output in format suitable for PDF
      * @param defaultThresh what thresholding value should be used
      * @param autoThresh if improvement of jbig2enc should be used
@@ -100,7 +107,7 @@ public class Jbig2enc {
         if (basename == null) {
             basename = "output";
         }
-        
+
 
         if (imageList == null) {
             throw new NullPointerException("imageList");

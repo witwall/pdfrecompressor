@@ -13,6 +13,28 @@
         It is written in Java and uses library Apache PDFBox and IText for manipulation
         with PDF documents and encoder jbig2enc for compression of extracted images.
     </description>
+    
+    <!-- details about the organization that 'owns' the project -->
+    <organization>
+        <name>Faculty of Informatics, Masaryk University, Brno</name>
+        <url>http://www.fi.muni.cz/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>nickradas</id>
+            <name>Radim Hatlapatka</name>
+            <email>hata.radim@gmail.com</email>
+            <roles>
+                <role>developer</role>
+                <role>designer</role>
+                <role>architect</role>
+                <role>coder</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
     <url>http://code.google.com/p/pdfrecompressor/</url>
 
     <repositories>
@@ -73,20 +95,7 @@
         </dependency>
     </dependencies>
 
-    <developers>
-        <developer>
-            <id>nickradas</id>
-            <name>Radim Hatlapatka</name>
-            <email>hata.radim@gmail.com</email>
-            <url>https://is.muni.cz/auth/osoba/208155?lang=en;setlang=en</url>
-            <organization>Faculty of Informatics Masaryk University</organization>
-            <organizationUrl>http://fi.muni.cz/</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-    </developers>
+
 
 
     <licenses>
