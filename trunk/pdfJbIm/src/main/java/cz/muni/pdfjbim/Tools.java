@@ -14,18 +14,15 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -33,7 +30,7 @@ import java.util.List;
  */
 public class Tools {
 
-   
+    private static final Logger logger = LoggerFactory.getLogger(Tools.class);
 
     /**
      * @param filesToDelete list of fileNames to be deleted
@@ -43,7 +40,7 @@ public class Tools {
             File fileToDelete = new File(filesToDelete.get(i));
             if (!fileToDelete.delete()) {
                 if (!silent) {
-                    System.err.println("problem to delete file: " + fileToDelete.getPath());
+                    logger.warn("problem to delete file: " + fileToDelete.getPath());
                 }
             }
         }
@@ -57,12 +54,11 @@ public class Tools {
             File fileToDelete = filesToDelete[i];
             if (!fileToDelete.delete()) {
                 if (!silent) {
-                    System.err.println("problem to delete file: " + fileToDelete.getPath());
+                    logger.warn("problem to delete file: " + fileToDelete.getPath());
                 }
             }
         }
     }
-
 
     /**
      * copy file
@@ -71,7 +67,7 @@ public class Tools {
      * @throws IOException
      */
     public static void copy(File fromFile, File toFile) throws IOException {
-        
+
 
         if (!fromFile.exists()) {
             throw new IOException("FileCopy: " + "no such source file: "
@@ -95,8 +91,7 @@ public class Tools {
                 throw new IOException("FileCopy: "
                         + "destination file is unwriteable: " + toFile.getName());
             }
-            System.out.println("Overwrite existing file " + toFile.getName());
-            System.out.flush();
+            logger.info("Overwrite existing file " + toFile.getName());
         } else {
             String parent = toFile.getParent();
             if (parent == null) {
@@ -153,7 +148,7 @@ public class Tools {
      * @throws IOException
      */
     public static void copyDir(File sourceDir, File destinationDir) throws IOException {
-        
+
         if (sourceDir == null) {
             throw new NullPointerException("sourceDir");
         }
@@ -167,7 +162,7 @@ public class Tools {
                     + destinationDir.getPath() + " doesn't exist");
         }
 
-        if (!sourceDir.isDirectory())  {
+        if (!sourceDir.isDirectory()) {
             throw new IllegalArgumentException(sourceDir.getPath() + " is not a directory");
         }
 
