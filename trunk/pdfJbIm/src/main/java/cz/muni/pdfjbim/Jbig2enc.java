@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -34,6 +36,7 @@ public class Jbig2enc {
     private Boolean autoThresh = false;
     private int bwThresh = 188;
     private Boolean silent = false;
+    private static final Logger logger = LoggerFactory.getLogger(Jbig2enc.class);
 
     public Jbig2enc(String jbig2enc) {
         if (jbig2enc == null) {
@@ -116,7 +119,7 @@ public class Jbig2enc {
 
         if (imageList.isEmpty()) {
             if (!silent) {
-                System.err.println("there are no images for running jbig2enc at (given list is empty)");
+                logger.info("there are no images for running jbig2enc at (given list is empty)");
             }
             return;
         }
@@ -169,25 +172,17 @@ public class Jbig2enc {
 //                }
 
 
-                System.out.println(line);
+                logger.debug(line);
             }
             if (exitValue != 0) {
-                if (!silent) {
-                    System.err.println("jbig2enc ended with error " + exitValue);
-                }
+                logger.warn("jbig2enc ended with error " + exitValue);
                 Tools.deleteFilesFromList(imageList, silent);
                 System.exit(3);
             }
         } catch (IOException ex) {
-            if (!silent) {
-                System.err.println("runJbig2enc caused IOException");
-                ex.printStackTrace(System.err);
-            }
-
+            logger.warn("running jbig2enc caused IOException", ex);
         } catch (InterruptedException ex2) {
-            if (!silent) {
-                ex2.printStackTrace(System.err);
-            }
+            logger.warn("running jbig2enc was interupted", ex2);
         } finally {
             Tools.deleteFilesFromList(imageList, silent);
         }

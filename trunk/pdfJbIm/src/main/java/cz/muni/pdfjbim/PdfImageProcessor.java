@@ -54,6 +54,8 @@ import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This will read a pdf and extract images (names of images are stored in list and put back their compressed version)
@@ -67,6 +69,8 @@ public class PdfImageProcessor {
     private List<String> namesOfImages = new ArrayList<String>();
     private List<PdfImageInformation> originalImageInformations = new ArrayList<PdfImageInformation>();
     private boolean silent = false;
+
+    private static final Logger logger = LoggerFactory.getLogger(PdfImageProcessor.class);
 
     /**
      * @return names of images in a list
@@ -256,7 +260,7 @@ public class PdfImageProcessor {
 
                         if ((image.getBitsPerComponent() > 1) && (!binarize)) {
                             if (!silent) {
-                                System.err.println("It is not a bitonal image => skipping");
+                                logger.info("It is not a bitonal image => skipping");
                             }
                             continue;
                         }
@@ -264,7 +268,7 @@ public class PdfImageProcessor {
                         // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                         if (filters.contains(COSName.LZW_DECODE.getName())) {
                             if (!silent) {
-                                System.err.println("This is LZWDecoded => skipping");
+                                logger.info("This is LZWDecoded => skipping");
                             }
                             continue;
 
@@ -273,7 +277,7 @@ public class PdfImageProcessor {
                         // detection of unsupported filters by pdfBox library
                         if (filters.contains("JBIG2Decode")) {
                             if (!silent) {
-                                System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                                logger.info("Allready compressed according to JBIG2 standard => skipping");
                             }
                             continue;
                         }
@@ -415,24 +419,24 @@ public class PdfImageProcessor {
                                 List filters = pdStr.getFilters();
 
                                 if (image.getBitsPerComponent() > 1) {
-                                    System.err.println("It is not a bitonal image => skipping");
+                                    logger.info("It is not a bitonal image => skipping");
                                     continue;
                                 }
 
                                 // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                                 if (filters.contains(COSName.LZW_DECODE.getName())) {
-                                    System.err.println("This is LZWDecoded => skipping");
+                                    logger.info("This is LZWDecoded => skipping");
                                     continue;
 
                                 }
 
                                 // detection of unsupported filters by pdfBox library
                                 if (filters.contains("JBIG2Decode")) {
-                                    System.err.println("Allready compressed according to JBIG2 standard => skipping");
+                                    logger.info("Allready compressed according to JBIG2 standard => skipping");
                                     continue;
                                 }
                                 if (filters.contains("JPXDecode")) {
-                                    System.err.println("Unsupported filter JPXDecode => skipping");
+                                    logger.info("Unsupported filter JPXDecode => skipping");
                                     continue;
                                 }
 
@@ -443,13 +447,13 @@ public class PdfImageProcessor {
                                 System.err.println(objectNum + " " + genNum + " obj");
 
                                 String name = getUniqueFileName(prefix + imKey, image.getSuffix());
-                                System.out.println("Writing image:" + name);
+                                logger.debug("Writing image:" + name);
                                 image.write2file(name);
 
                                 PdfImageInformation pdfImageInfo =
                                         new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
                                 originalImageInformations.add(pdfImageInfo);
-                                System.err.println(pdfImageInfo);
+                                logger.debug(pdfImageInfo.toString());
 
                                 namesOfImages.add(name + "." + image.getSuffix());
                             }

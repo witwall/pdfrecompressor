@@ -24,6 +24,8 @@ import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -31,6 +33,8 @@ import java.util.Set;
  * @version 1.0
  */
 public class Run {
+
+    private static final Logger logger = LoggerFactory.getLogger(PdfImageProcessor.class);
 
     /**
      * @param args the command line arguments
@@ -186,7 +190,7 @@ public class Run {
 
         // PdfImageProcessor handles extraction of pdf and putting recompressed images
         PdfImageProcessor pdfProcessing = new PdfImageProcessor();
-        
+
         pdfProcessing.setSilent(silent); // if stderr output shall be printed or not
 
         // image extraction
@@ -196,7 +200,7 @@ public class Run {
         List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
-                System.out.println("No images in " + pdfFile + " to recompress");
+                logger.info("No images in " + pdfFile + " to recompress");
             }
 //            System.exit(0);
         } else {
@@ -225,9 +229,13 @@ public class Run {
             File fileName = new File(outputPdf);
 
             if (fileName.createNewFile()) {
-                System.out.println("file " + outputPdf + " was created");
+                if (!silent) {
+                    logger.info("file " + outputPdf + " was created");
+                }
             } else {
-                System.out.println("file " + outputPdf + " already exist => will be rewriten");
+                if (!silent) {
+                    logger.info("file " + outputPdf + " already exist => will be rewriten");
+                }
             }
             out = new FileOutputStream(fileName);
 
@@ -242,10 +250,7 @@ public class Run {
             System.out.println("Size of pdf file after recompression = " + sizeOfOutputPdf);
             System.out.println("=> Saved " + String.format("%.2f", saved) + " % from original size");
         } catch (IOException ex) {
-            if (!silent) {
-                System.err.println("writing output to the file caused error");
-                ex.printStackTrace(System.err);
-            }
+            logger.warn("writing output to the file caused error", ex);
             System.exit(2);
         } finally {
             if (out != null) {
