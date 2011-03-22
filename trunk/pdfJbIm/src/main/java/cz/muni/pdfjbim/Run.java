@@ -29,12 +29,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Radim Hatlapatka (208155@mail.muni.cz)
- * @version 1.0
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class Run {
 
-    private static final Logger logger = LoggerFactory.getLogger(PdfImageProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(Run.class);
 
     /**
      * @param args the command line arguments
@@ -189,15 +188,15 @@ public class Run {
         double startTime = System.currentTimeMillis();
 
         // PdfImageProcessor handles extraction of pdf and putting recompressed images
-        PdfImageProcessor pdfProcessing = new PdfImageProcessor();
+        PdfImageExtractor imageExtractor = new PdfImageExtractor();
 
-        pdfProcessing.setSilent(silent); // if stderr output shall be printed or not
+        imageExtractor.setSilent(silent); // if stderr output shall be printed or not
 
         // image extraction
-        pdfProcessing.extractImages(pdfFile, password, pagesToProcess, binarize);
+        imageExtractor.extractImages(pdfFile, password, pagesToProcess, binarize);
 
         // returns names of extracted images as List
-        List<String> jbig2encInputImages = pdfProcessing.getNamesOfImages();
+        List<String> jbig2encInputImages = imageExtractor.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
                 logger.info("No images in " + pdfFile + " to recompress");
@@ -217,7 +216,7 @@ public class Run {
         }
 
         // getting informations about images that were in PDF such as size, position in PDF,...
-        List<PdfImageInformation> pdfImagesInfo = pdfProcessing.getOriginalImageInformations();
+        List<PdfImageInformation> pdfImagesInfo = imageExtractor.getOriginalImageInformations();
 
         // reading output of encoder and associating with informations about them
         Jbig2ForPdf pdfImages = new Jbig2ForPdf(".", basename);
@@ -241,7 +240,9 @@ public class Run {
 
             // replaces images with their recompressed version based on image info and is stored
             // in output stream (out)
-            pdfProcessing.replaceImageUsingIText(pdfFile, out, pdfImages);
+            PdfImageReplacer imageReplacer = new PdfImageReplacer();
+            imageReplacer.setSilent(true);
+            imageReplacer.replaceImageUsingIText(pdfFile, out, pdfImages);
 
             // counting some logging info concerning sizes of input vs output
             long sizeOfOutputPdf = fileName.length();

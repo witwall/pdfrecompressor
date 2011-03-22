@@ -20,7 +20,7 @@ package cz.muni.pdfjbim;
 /**
  * Thrown when found problem with recompressing PDF file
  *
- * @author Radim Hatlapatka (208155@mail.muni.cz)
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  * @version 1.0
  */
 public class PdfRecompressionException extends Exception {

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Radim Hatlapatka (208155@mail.muni.cz)
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class Jbig2enc {
 

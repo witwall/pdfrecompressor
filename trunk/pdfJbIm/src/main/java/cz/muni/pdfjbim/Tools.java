@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author radim
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class Tools {
 

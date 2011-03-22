@@ -19,7 +19,7 @@ package cz.muni.pdfjbim;
 
 /**
  * Represents PDF object identifier
- * @author radim
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class PdfObjId {
     private int objectNumber;

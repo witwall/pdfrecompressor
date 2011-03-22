@@ -20,8 +20,7 @@ package cz.muni.pdfjbim;
 /**
  * Contains information about size of image and it's position in original PDF
  *
- * @author Radim Hatlapatka (208155@mail.muni.cz)
- * @version 1.0
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class PdfImageInformation {
 
