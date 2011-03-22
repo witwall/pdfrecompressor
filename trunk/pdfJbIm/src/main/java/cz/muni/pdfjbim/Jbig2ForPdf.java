@@ -35,8 +35,7 @@ import java.util.TreeMap;
  * in format suitable for pdf
  * and byte array of global Data
  *
- * @author Radim Hatlapatka (208155@mail.muni.cz)
- * @version 1.0
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class Jbig2ForPdf {
 

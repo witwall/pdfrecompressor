@@ -27,8 +27,7 @@ import java.io.IOException;
 /**
  * class representing JBIG2 image in format suitable for pdf (without header,...)
  *
- * @author Radim Hatlapatka (208155@mail.muni.cz)
- * @version 1.0
+ * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class PdfImage {
 
