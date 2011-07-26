@@ -37,6 +37,7 @@ public class Run {
 
     /**
      * @param args the command line arguments
+     * @throws PdfRecompressionException 
      */
     public static void main(String[] args) throws PdfRecompressionException {
         if (args.length < 4) {
@@ -119,6 +120,7 @@ public class Run {
                 }
                 continue;
             }
+            
 
             if (args[i].equalsIgnoreCase("-bw_thresh")) {
                 i++;

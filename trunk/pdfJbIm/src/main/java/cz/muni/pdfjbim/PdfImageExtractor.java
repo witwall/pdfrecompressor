@@ -49,7 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * class allowing extraction of images from a PDF document
  * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class PdfImageExtractor {
@@ -177,7 +177,7 @@ public class PdfImageExtractor {
             binarize = false;
         }
         // checking arguments and setting appropriate variables
-        String prefix = PdfImageProcessor.class.getName();
+        String prefix = PdfImageExtractor.class.getName();
         extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
     }
 

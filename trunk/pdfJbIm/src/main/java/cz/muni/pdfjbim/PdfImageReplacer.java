@@ -27,14 +27,19 @@ import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * class for replacing images inside PDF document by their recompressed version
  *
  * @author Radim Hatlapatka (208155@mail.muni.cz)
  */
@@ -56,7 +61,8 @@ public class PdfImageReplacer {
         this.silent = silent;
     }
 
-        /**
+    
+            /**
      * replace images by they recompressed version according to JBIG2 standard
      * positions and image data given in imagesData
      * @param pdfName represents name of original PDF file
@@ -64,8 +70,28 @@ public class PdfImageReplacer {
      * @param imagesData contains compressed images according to JBIG2 standard and informations about them
      * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
      */
-    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData) throws PdfRecompressionException {
-        if (pdfName == null) {
+    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData) 
+            throws PdfRecompressionException {
+        
+        try {
+            replaceImageUsingIText(new FileInputStream(pdfName), os, imagesData);
+        } catch (FileNotFoundException ex) {
+            logger.error("Original PDF not found", ex);
+            throw new PdfRecompressionException(ex);
+        }
+    }
+    
+    
+        /**
+     * replace images by they recompressed version according to JBIG2 standard
+     * positions and image data given in imagesData
+     * @param originalPdf represents name of original PDF file
+     * @param os represents output stream for writing changed PDF file
+     * @param imagesData contains compressed images according to JBIG2 standard and informations about them
+     * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
+     */
+    public void replaceImageUsingIText(InputStream originalPdf, OutputStream os, Jbig2ForPdf imagesData) throws PdfRecompressionException {
+        if (originalPdf == null) {
             throw new NullPointerException("pdfName");
         }
 
@@ -83,7 +109,7 @@ public class PdfImageReplacer {
         PdfReader pdf;
         PdfStamper stp = null;
         try {
-            pdf = new PdfReader(pdfName);
+            pdf = new PdfReader(originalPdf);
             stp = new PdfStamper(pdf, os);
             PdfWriter writer = stp.getWriter();
 
@@ -164,12 +190,18 @@ public class PdfImageReplacer {
                     }
                 }
             }
-            stp.close();
         } catch (IOException ioEx) {
             throw new PdfRecompressionException(ioEx);
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         } finally {
+            try {
+                stp.close();
+            } catch (DocumentException ex) {
+                logger.error("Exception thrown while closing stream", ex);
+            } catch (IOException ex) {
+                logger.error("Exception thrown while closing stream", ex);
+            }
             Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]), silent);
         }
     }

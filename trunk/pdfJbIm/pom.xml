@@ -43,10 +43,10 @@
             <name>Maven Repository for iText</name>
             <url>http://maven.itextpdf.com/</url>
         </repository>
-    </repositories>
+    </repositories> 
 
     <dependencies>
-
+    
     <!-- dependencies for manipulation with PDF -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
