@@ -1,5 +1,5 @@
 CC=g++
-LEPTONICA=../leptonlib-1.67
+LEPTONICA=../../leptonlib-1.67
 #LEPTONICA=../leptonica-1.68
 TESSERACT=../tesseract-ocr
 TESSERACT_INCLUDES=-I${TESSERACT}/api -I${TESSERACT}/ccmain -I${TESSERACT}/ccutil -I${TESSERACT}/ccstruct -I${TESSERACT}/image -I${TESSERACT}/viewer -I${TESSERACT}/dict -I${TESSERACT}/classify -I${TESSERACT}/display -I${TESSERACT}/wordrec -I${TESSERACT}/cutil -I${TESSERACT}/textord
