@@ -385,7 +385,8 @@ main(int argc, char **argv) {
         return 1;
       }
       l_int32 filetype;
-      findFileFormat(fp, &filetype);
+	  findFileFormat(fp, &filetype);
+	  //findFileFormat(argv[i], &filetype);
       if (filetype==IFF_TIFF && tiffGetCount(fp, &numsubimages)) {
         return 1;
       }

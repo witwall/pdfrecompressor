@@ -27,15 +27,27 @@
             <email>hata.radim@gmail.com</email>
             <roles>
                 <role>developer</role>
-                <role>designer</role>
+<!--                <role>designer</role>
                 <role>architect</role>
-                <role>coder</role>
+                <role>coder</role>-->
             </roles>
             <timezone>+1</timezone>
         </developer>
     </developers>
 
     <url>http://code.google.com/p/pdfrecompressor/</url>
+    
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    
+    <scm>
+        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/trunk/</connection>
+        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/trunk/</developerConnection>
+        <url>http://pdfrecompressor.googlecode.com/svn/trunk/</url>
+    </scm>
 
     <repositories>
         <repository>
@@ -119,8 +131,8 @@
 
     <licenses>
         <license>
-            <name>Apache Licence 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>GNU Affero General Public License version 3</name>
+            <url>http://www.gnu.org/licenses/agpl-3.0.txt</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
