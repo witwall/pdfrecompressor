@@ -1,11 +1,10 @@
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>cz.muni</groupId>
     <artifactId>pdfJbIm</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>pdfJbIm</name>
     <description>
         Tool used for (re)compression of PDF files using standard JBIG2
@@ -44,9 +43,9 @@
     </parent>
     
     <scm>
-        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/pdfJbIm/trunk/</connection>
-        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/pdfJbIm/trunk/</developerConnection>
-        <url>http://pdfrecompressor.googlecode.com/svn/pdfJbIm/trunk/</url>
+        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</connection>
+        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</developerConnection>
+        <url>http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</url>
     </scm>
 
     <repositories>
@@ -63,7 +62,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>1.4.0</version>
         </dependency>
 
         <dependency>
@@ -172,6 +171,19 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
             </plugin>
             <plugin>
@@ -204,4 +216,34 @@
             </plugin>
         </plugins>
     </reporting>
+    
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
