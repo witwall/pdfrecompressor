@@ -74,6 +74,9 @@ public class Jbig2enc {
         return defaultThresh;
     }
 
+    /**
+     * @param defaultThresh sets default thresholding used while running jbig2enc
+     */
     public void setDefaultThresh(double defaultThresh) {
         if ((defaultThresh < 0.4) || (defaultThresh > 0.9)) {
             throw new IllegalArgumentException("defaultThresh");
@@ -99,12 +102,9 @@ public class Jbig2enc {
 
     /**
      * run jbig2enc with symbol coding used and output in format suitable for PDF
-     * @param defaultThresh what thresholding value should be used
-     * @param autoThresh if improvement of jbig2enc should be used
-     * @param bwThresh setting black/white thresholding
-     * @param silent turns off error output
-     * @param jbig2enc represents path to jbig2enc
+     * @param basename base
      * @param imageList list of images to be compressed
+     * @throws PdfRecompressionException if any problem occurs while running jbig2enc 
      */
     public void run(List<String> imageList, String basename) throws PdfRecompressionException {
         if (basename == null) {

@@ -44,9 +44,9 @@
     </parent>
     
     <scm>
-        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/trunk/</connection>
-        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/trunk/</developerConnection>
-        <url>http://pdfrecompressor.googlecode.com/svn/trunk/</url>
+        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/pdfJbIm/trunk/</connection>
+        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/pdfJbIm/trunk/</developerConnection>
+        <url>http://pdfrecompressor.googlecode.com/svn/pdfJbIm/trunk/</url>
     </scm>
 
     <repositories>
