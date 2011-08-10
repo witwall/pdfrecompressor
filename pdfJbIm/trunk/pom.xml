@@ -48,13 +48,13 @@
         <url>http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</url>
     </scm>
 
-    <repositories>
+<!--    <repositories>
         <repository>
             <id>itextpdf.com</id>
             <name>Maven Repository for iText</name>
             <url>http://maven.itextpdf.com/</url>
         </repository>
-    </repositories> 
+    </repositories> -->
 
     <dependencies>
     
@@ -62,31 +62,31 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.4.0</version>
+            <version>1.6.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15</artifactId>
-            <version>1.44</version>
+            <version>1.46</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcmail-jdk15</artifactId>
-            <version>1.44</version>
+            <version>1.46</version>
         </dependency>
 
         <dependency>
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
-            <version>3.8</version>
+            <version>4.8.1</version>
         </dependency>
 
         <!-- iText -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>
-            <version>5.0.4</version>
+            <version>5.0.6</version>
             <scope>compile</scope>
         </dependency>
 
