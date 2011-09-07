@@ -610,8 +610,9 @@ void countHash(PIX * pix, std::map<int, std::list<int> > &hashMap, int templateI
   l_uint32 w = pixGetWidth(pix);
   l_uint32 h = pixGetHeight(pix);
 
-  //finding num of holes -- needs to be done
-  int holes = 1;
+  //finding num of holes
+  l_int32 holes;
+  pixCountConnComp(pix, 4, &holes);
 
   int hash = (holes + 10 * h + 7000 * w) % 52387;
 
