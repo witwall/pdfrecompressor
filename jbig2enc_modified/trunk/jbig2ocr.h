@@ -38,13 +38,13 @@
 
 #include "ocrResult.h"
 
-#if defined(sun)
-#include <sys/types.h>
-#else
-#include <stdint.h>
-#endif
+/*#if defined(sun)*/
+/*#include <sys/types.h>*/
+/*#else*/
+/*#include <stdint.h>*/
+/*#endif*/
 
-struct Pix;
+//struct Pix;
 
 OcrResult * recognizeLetter(PIX * pix);
 
