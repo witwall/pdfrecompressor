@@ -54,16 +54,13 @@
 #include "ocrResult.h"
 #include "jbig2ocr.h"
 
-#include <iulib/imgio.h>
-#include <iulib/imglib.h>
-
-//#include <colib/colib.h>
-//#include <iulib/iulib.h>
-//#include <iulib/imgbits.h>
+//#include <iulib/imgio.h>
+//#include <iulib/imglib.h>
 
 
-using namespace colib;
-using namespace iulib;
+
+//using namespace colib;
+//using namespace iulib;
 using namespace std;
 
 // -----------------------------------------------------------------------------
@@ -435,18 +432,20 @@ jbig2_destroy(struct jbig2ctx *ctx) {
   delete ctx;
 }
 
-//void autoThreshUsingOCR(struct jbig2ctx *ctx) {
-  //if (!ctx) {
-    //fprintf(stderr, "missing structure jbig2ctx to process");
-    //return;
-  //}
-  //PIXA *jbPixa = ctx->classer->pixat;
-  //std::vector<OcrResult> ocrResults;
-  //for (int i = 0; i < pixaGetCount(jbPixa); i++) {
-    //PIX *jbPix = jbPixa->pix[i];
-    ////recognizeLetter(jbPix);
-  //}
-//}
+void autoThreshUsingOCR(struct jbig2ctx *ctx) {
+  if (!ctx) {
+	fprintf(stderr, "missing structure jbig2ctx to process");
+	return;
+  }
+  fprintf(stderr, "recognizing letters using OCR\n");
+  PIXA *jbPixa = ctx->classer->pixat;
+  std::vector<OcrResult> ocrResults;
+  for (int i = 0; i < pixaGetCount(jbPixa); i++) {
+	PIX *jbPix = jbPixa->pix[i];
+	OcrResult * ocrResult = recognizeLetter(jbPix);
+	fprintf(stderr, "confidence %f\n", ocrResult->getConfidence());
+  }
+}
 
 int getBoxOfFirstInstanceOfTemplate(struct jbig2ctx *ctx, int index) {
   if (!ctx) {

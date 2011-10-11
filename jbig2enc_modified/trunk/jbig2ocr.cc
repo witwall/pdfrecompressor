@@ -29,7 +29,7 @@
 
 // from tesseract
 #include <baseapi.h>
-//using namespace tesseract;
+using namespace tesseract;
 
 #include <math.h>
 #if defined(sun)
@@ -49,18 +49,19 @@
 
  *  box contains info about position and size of PIX
  */
-OcrResult * recognizeLetter(PIX * pix, BOX * box) {
+//OcrResult * recognizeLetter(PIX * pix, BOX * box) {
+OcrResult * recognizeLetter(PIX * pix) {
   // using api of tesseract
-  tesseract::TessBaseAPI *api;
-  api->SetOutputName("recognized");
-  api->Init("tesseract", "eng");  
-  api->SetPageSegMode(tesseract::PSM_AUTO);
-  api->SetImage(pix);
-  char * recognizedText = api->GetUTF8Text();
-  int *confidences = api->AllWordConfidences();
+  tesseract::TessBaseAPI api;
+  api.SetOutputName("recognized");
+  api.Init("tesseract", "eng");  
+  api.SetPageSegMode(tesseract::PSM_AUTO);
+  api.SetImage(pix);
+  char * recognizedText = api.GetUTF8Text();
+  int *confidences = api.AllWordConfidences();
   OcrResult * result = new OcrResult(pix);
   result->setCharsWithConfidences(recognizedText, confidences, 1);
-  fprintf(stdout, "&s\n", recognizedText);
+  fprintf(stderr, "recognized text: %s", recognizedText);
   return result;
 }
 

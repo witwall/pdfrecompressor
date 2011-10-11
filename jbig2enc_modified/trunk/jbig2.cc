@@ -52,6 +52,7 @@ usage(const char *argv0) {
   fprintf(stderr, "  -S: remove images from mixed input and save separately\n");
   fprintf(stderr, "  -j --jpeg-output: write images from mixed input as JPEG\n");
   fprintf(stderr, "  -autoThresh: engage using autoThresholding for symbol coder\n");
+  fprintf(stderr, "  -useOcr: engages using autoThresholding with usage of OCR engine (actually tesseract used) -- not fully implemented yet; requires option autoThresh enabled\n");
   fprintf(stderr, "  -v: be verbose\n");
 }
 
@@ -227,6 +228,7 @@ main(int argc, char **argv) {
   int i;
   bool autoThresh = false;
   bool hash = true;
+  bool useOcr = false;
 
   for (i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "-h") == 0 ||
@@ -340,6 +342,11 @@ main(int argc, char **argv) {
 
     if (strcmp(argv[i], "-nohash") == 0) {
       hash = false;
+      continue;
+    }
+
+    if (strcmp(argv[i], "-useOcr") == 0) {
+      useOcr = true;
       continue;
     }
 
@@ -491,6 +498,9 @@ main(int argc, char **argv) {
     } else {
       autoThreshold(ctx);
     } 
+    if (useOcr) {
+      autoThreshUsingOCR(ctx);
+    }
   }
 
 
