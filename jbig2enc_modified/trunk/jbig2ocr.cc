@@ -53,9 +53,10 @@ using namespace tesseract;
 OcrResult * recognizeLetter(PIX * pix) {
   // using api of tesseract
   tesseract::TessBaseAPI api;
-  api.SetOutputName("recognized");
+  //api.SetOutputName("recognized");
   api.Init("tesseract", "eng");  
-  api.SetPageSegMode(tesseract::PSM_AUTO);
+  tesseract::PageSegMode pagesegmode = static_cast<tesseract::PageSegMode>(10);
+  api.SetPageSegMode(pagesegmode);
   api.SetImage(pix);
   char * recognizedText = api.GetUTF8Text();
   int *confidences = api.AllWordConfidences();
