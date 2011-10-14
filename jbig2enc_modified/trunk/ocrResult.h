@@ -60,9 +60,9 @@ class OcrResult {
      *  *chars .......... array of recognized chars
      *  *confidences .... array of confidences of chars 
 			  (connected by index number = position in the array)
-     *  n ............... length of arrays
+     *  last item in array has value -1
      */
-    void setCharsWithConfidences(char *chars, int *confidences, int n);
+    void setCharsWithConfidences(char *chars, int *confidences);
 
 };
 #endif

@@ -61,7 +61,7 @@ OcrResult * recognizeLetter(PIX * pix) {
   char * recognizedText = api.GetUTF8Text();
   int *confidences = api.AllWordConfidences();
   OcrResult * result = new OcrResult(pix);
-  result->setCharsWithConfidences(recognizedText, confidences, 1);
+  result->setCharsWithConfidences(recognizedText, confidences);
   fprintf(stderr, "recognized text: %s", recognizedText);
   return result;
 }
