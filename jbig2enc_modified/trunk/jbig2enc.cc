@@ -443,7 +443,7 @@ void autoThreshUsingOCR(struct jbig2ctx *ctx) {
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
 	PIX *jbPix = jbPixa->pix[i];
 	OcrResult * ocrResult = recognizeLetter(jbPix);
-	fprintf(stderr, "confidence %f\n", ocrResult->getConfidence());
+	fprintf(stderr, "confidence %i\n", ocrResult->getConfidence());
   }
 }
 

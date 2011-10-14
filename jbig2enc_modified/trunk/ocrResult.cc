@@ -12,12 +12,14 @@ void OcrResult::addRecognizedChar(char character, int confidence) {
 /**
  *  *chars .......... array of recognized chars
  *  *confidences .... array of confidences of chars 
-		      (connected by index number = position in the array)
- *  n ............... number of symbols with confidences
+ *		      (connected by index number = position in the array)
+ *      -- last item in array is -1
  */
-void OcrResult::setCharsWithConfidences(char *chars, int *confidences, int n) {
-  for (int i = 0; i < n; i++) {
+void OcrResult::setCharsWithConfidences(char *chars, int *confidences) {
+  int i = 0;
+  while (confidences[i] != -1) {
     this->charConfidences.insert(pair<char, int>(chars[i], confidences[i]));
+    i++;
   }
-  this->numOfChars+=n;
+  this->numOfChars+=i;
 }
