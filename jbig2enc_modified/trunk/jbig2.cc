@@ -493,13 +493,14 @@ main(int argc, char **argv) {
   }
 
   if (autoThresh) {
-    if (hash) {
+    if (hash && !useOcr) {
       autoThresholdUsingHash(ctx);
     } else {
       autoThreshold(ctx);
     } 
     if (useOcr) {
-      autoThreshUsingOCR(ctx);
+      fprintf(stderr, "Using hash and OCR\n");
+      autoThresholdUsingHashAndOCR(ctx);
     }
   }
 

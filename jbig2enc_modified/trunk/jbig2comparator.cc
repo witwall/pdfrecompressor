@@ -126,8 +126,8 @@ void printPix(PIX *pix) {
   }
   l_uint32 w = pixGetWidth(pix);
   l_uint32 h = pixGetHeight(pix);
-  fprintf(stderr, "pix width = %d, pix height = %d\n", w, h);
-  fprintf(stderr, "pix xres = %d, pix yres = %d\n", pixGetXRes(pix),pixGetYRes(pix));
+  //fprintf(stderr, "pix width = %d, pix height = %d\n", w, h);
+  //fprintf(stderr, "pix xres = %d, pix yres = %d\n", pixGetXRes(pix),pixGetYRes(pix));
 
   l_uint32 initUnsigned = 0;
   l_uint32 *pval = &initUnsigned;
@@ -156,16 +156,16 @@ void printPix(PIX *pix) {
     fprintf(stderr, "\n");
   }
 
-  fprintf(stderr, "output after conversion to chars\n");
-  char * dataAsChars = intsToChars(pix);
-  l_uint32 cpl = (pixGetWidth(pix)+7) / 8;
-  for (l_uint16 i = 0; i < h; i++) {
-    l_uint16 line = i*cpl;
-    for (l_uint16 j = 0; j < cpl; j++) {
-      charprintbitssimple(dataAsChars[line+j]);
-    }
-    fprintf(stderr, "\n");
-  }
+  //fprintf(stderr, "output after conversion to chars\n");
+  //char * dataAsChars = intsToChars(pix);
+  //l_uint32 cpl = (pixGetWidth(pix)+7) / 8;
+  //for (l_uint16 i = 0; i < h; i++) {
+    //l_uint16 line = i*cpl;
+    //for (l_uint16 j = 0; j < cpl; j++) {
+      //charprintbitssimple(dataAsChars[line+j]);
+    //}
+    //fprintf(stderr, "\n");
+  //}
 }
 
 
@@ -435,12 +435,3 @@ int areEquivalent(PIX * firstTemplate, PIX * secondTemplate) {
 */
   return 1;
 }
-
-
-/* need repair, linking causes error
-int recognizeLetter(PIX * pix) {
-  tesseract::TessBaseAPI api;
-  
-  return 0;
-}
-*/

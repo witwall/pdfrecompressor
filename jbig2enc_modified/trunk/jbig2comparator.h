@@ -53,5 +53,9 @@ struct Pix;
  */
 int areEquivalent(PIX *const firstTemplate, PIX *const secondTemplate);
 
+/**
+ * printing pix bitmap to stderr -- just for testing
+ */
+void printPix(PIX *pix);
 
 #endif  // JBIG2OCR_JBIG2_H__

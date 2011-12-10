@@ -45,8 +45,7 @@ using namespace tesseract;
 
 
 
-/* need repair, linking causes error
-
+/* 
  *  box contains info about position and size of PIX
  */
 //OcrResult * recognizeLetter(PIX * pix, BOX * box) {
@@ -62,7 +61,6 @@ OcrResult * recognizeLetter(PIX * pix) {
   int *confidences = api.AllWordConfidences();
   OcrResult * result = new OcrResult(pix);
   result->setCharsWithConfidences(recognizedText, confidences);
-  fprintf(stderr, "recognized text: %s", recognizedText);
   return result;
 }
 
