@@ -32,6 +32,8 @@ ocrResult.o: ocrResult.h ocrResult.cc
 	$(CC) -c ocrResult.cc $(CFLAGS)
 ocrResults.o: ocrResults.h ocrResults.cc ocrResult.h
 	$(CC) -c ocrResults.cc $(CFLAGS)
+#ocrResultKey.o: ocrResultKey.h ocrResult.h ocrResultKey.cc
+	#$(CC) -c ocrResultKey.cc $(CFLAGS)
 jbig2arith.o: jbig2arith.cc jbig2arith.h
 	$(CC) -c jbig2arith.cc $(CFLAGS)
 jbig2sym.o: jbig2sym.cc jbig2arith.h

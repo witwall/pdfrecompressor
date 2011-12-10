@@ -9,6 +9,7 @@ class OcrResult {
   private:
     PIX * pix;
     std::map<char, int> charConfidences;
+    char * recognizedText;
     int numOfChars;
   
   public:
@@ -22,8 +23,7 @@ class OcrResult {
     }
 
     ~OcrResult() {
-      pixDestroy(&pix);
-      /*charConfidences->clear;*/
+      charConfidences.clear();
     }
 
     std::map<char, int> getCharConfidences() {
@@ -48,6 +48,10 @@ class OcrResult {
 
     void setPix(PIX * pix) {
       this->pix = pix;
+    }
+
+    char * getRecognizedText() {
+      return recognizedText;
     }
 
     int getNumOfChars() {

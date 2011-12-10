@@ -22,4 +22,5 @@ void OcrResult::setCharsWithConfidences(char *chars, int *confidences) {
     i++;
   }
   this->numOfChars+=i;
+  this->recognizedText = chars;
 }
