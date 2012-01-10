@@ -11,6 +11,7 @@ class OcrResult {
     std::map<char, int> charConfidences;
     char * recognizedText;
     int numOfChars;
+    int meanConfidence;
   
   public:
     OcrResult() {
@@ -30,16 +31,24 @@ class OcrResult {
       return this->charConfidences;
     }
     
+	/*int getConfidence() {*/
+	/*if (charConfidences.size()==0) {*/
+	/*return -1;*/
+	/*}*/
+	/*std::map<char, int>::iterator it;*/
+	/*int sum = 0;*/
+	/*for (it = this->charConfidences.begin(); it != this->charConfidences.end(); it++) {*/
+	/*sum += it->second;*/
+	/*}*/
+	/*return sum / charConfidences.size();*/
+	/*}*/
+
     int getConfidence() {
-      if (charConfidences.size()==0) {
-        return -1;
-      }
-      std::map<char, int>::iterator it;
-      int sum = 0;
-      for (it = this->charConfidences.begin(); it != this->charConfidences.end(); it++) {
-        sum += it->second;
-      }
-      return sum / charConfidences.size();
+      return this->meanConfidence;
+    }
+
+    void setConfidence(int meanConfidence) {
+      this->meanConfidence = meanConfidence;
     }
 
     PIX * getPix() {
@@ -67,6 +76,8 @@ class OcrResult {
      *  last item in array has value -1
      */
     void setCharsWithConfidences(char *chars, int *confidences);
+
+    void setRecognizedTextWithMeanConfidence(char * chars, int meanConfidence);
 
 };
 #endif

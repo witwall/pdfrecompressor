@@ -58,9 +58,12 @@ OcrResult * recognizeLetter(PIX * pix) {
   api.SetPageSegMode(pagesegmode);
   api.SetImage(pix);
   char * recognizedText = api.GetUTF8Text();
-  int *confidences = api.AllWordConfidences();
+//  int *confidences = api.AllWordConfidences();
+  int confidence = api.MeanTextConf();
   OcrResult * result = new OcrResult(pix);
-  result->setCharsWithConfidences(recognizedText, confidences);
+//  result->setCharsWithConfidences(recognizedText, confidences);
+  result->setRecognizedTextWithMeanConfidence(recognizedText, confidence);
+  api.End();
   return result;
 }
 
