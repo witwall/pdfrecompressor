@@ -24,3 +24,8 @@ void OcrResult::setCharsWithConfidences(char *chars, int *confidences) {
   this->numOfChars+=i;
   this->recognizedText = chars;
 }
+
+void OcrResult::setRecognizedTextWithMeanConfidence(char * chars, int meanConfidence) {
+  this->recognizedText = chars;
+  this->meanConfidence = meanConfidence;
+}

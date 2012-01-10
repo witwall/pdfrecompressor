@@ -29,6 +29,7 @@
 
 #include "jbig2enc.h"
 
+
 #if defined(WIN32)
 #define WINBINARY O_BINARY
 #else
@@ -382,6 +383,7 @@ main(int argc, char **argv) {
   //PIX * secondImg;
   int imgNum = 0;
 
+  int dpiResolution = 0; // added by RH
   int numsubimages=0, subimage=0, num_pages = 0;
   while (i < argc) {
     if (subimage==numsubimages) {
@@ -450,6 +452,13 @@ main(int argc, char **argv) {
     }
     imgNum++;
 */
+
+    // added for computing resolution for further usage added by Radim Hatlapatka (hata.radim@gmail.com)
+    if (pixt->xres > dpiResolution) {
+      dpiResolution = pixt->xres;
+    }
+
+
     if (output_threshold) {
       pixWrite(output_threshold, pixt, IFF_PNG);
     }
@@ -499,8 +508,12 @@ main(int argc, char **argv) {
       autoThreshold(ctx);
     } 
     if (useOcr) {
-      fprintf(stderr, "Using hash and OCR\n");
-      autoThresholdUsingHashAndOCR(ctx);
+      if (dpiResolution >= 200) {
+        fprintf(stderr, "Using hash and OCR\n");
+        autoThresholdUsingHashAndOCR(ctx);
+      } else {
+        autoThresholdUsingHash(ctx);
+      }
     }
   }
 
