@@ -43,27 +43,29 @@ using namespace tesseract;
 #define u16 uint16_t
 #define u8  uint8_t
 
+#include "jbig2ocr.h"
 
+/*  
+ *  Initialization of tesseract api
+ */
+void TesseractOcr::init() {
+  this->api.Init("tesseract", lang);
+  tesseract::PageSegMode pagesegmode = static_cast<tesseract::PageSegMode>(10);
+  this->api.SetPageSegMode(pagesegmode);
+}
 
 /* 
  *  box contains info about position and size of PIX
  */
 //OcrResult * recognizeLetter(PIX * pix, BOX * box) {
-OcrResult * recognizeLetter(PIX * pix) {
-  // using api of tesseract
-  tesseract::TessBaseAPI api;
-  //api.SetOutputName("recognized");
-  api.Init("tesseract", "eng");  
-  tesseract::PageSegMode pagesegmode = static_cast<tesseract::PageSegMode>(10);
-  api.SetPageSegMode(pagesegmode);
+OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
   api.SetImage(pix);
   char * recognizedText = api.GetUTF8Text();
-//  int *confidences = api.AllWordConfidences();
+  int *confidences = api.AllWordConfidences();
   int confidence = api.MeanTextConf();
   OcrResult * result = new OcrResult(pix);
-//  result->setCharsWithConfidences(recognizedText, confidences);
+  result->setCharsWithConfidences(recognizedText, confidences);
   result->setRecognizedTextWithMeanConfidence(recognizedText, confidence);
-  api.End();
   return result;
 }
 

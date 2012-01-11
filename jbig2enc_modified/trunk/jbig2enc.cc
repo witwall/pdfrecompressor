@@ -443,7 +443,12 @@ void autoThreshUsingOCR(struct jbig2ctx *ctx) {
   std::vector<OcrResult> ocrResults;
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
 	PIX *jbPix = jbPixa->pix[i];
-	OcrResult * ocrResult = recognizeLetter(jbPix);
+
+
+	OcrResult * ocrResult;
+	//ocrResult = recognizeLetter(jbPix);
+
+
     fprintf(stderr, "recognized text: %s", ocrResult->getRecognizedText());
 	fprintf(stderr, "confidence %i\n", ocrResult->getConfidence());
     printPix(pixScaleByIntSubsampling(ocrResult->getPix(),3));
@@ -554,6 +559,47 @@ void countHash(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, int 
   }  
 }
 
+void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, std::list<int> > &hashMap, 
+					std::map<l_uint32, OcrResult*> &ocrResults) {
+  if (!jbPixa) {
+    fprintf(stderr, "no PIXA given\n");
+    return;
+  }
+
+  // initialize ocrEngine
+  TesseractOcr * ocr = new TesseractOcr("eng");
+  ocr->init();
+  
+  // counting hashes with ocrResults
+  for (int i = 0; i < pixaGetCount(jbPixa); i++) {
+    PIX * pix = jbPixa->pix[i];
+    l_uint32 w = pixGetWidth(pix);
+    l_uint32 h = pixGetHeight(pix);
+
+    //finding num of holes
+    l_int32 holes;
+    pixCountConnComp(pix, 4, &holes);
+    OcrResult * ocrResult = ocr->recognizeLetter(pix);
+    ocrResults.insert(pair<l_uint32, OcrResult*>(i, ocrResult));
+    unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
+
+    //fprintf(stderr, "holes: %d, h: %d, w: %d, ascii: %d\n",holes, h, w, asciiSum);
+    unsigned int hash = (holes + 10 * h + 10000 * w + 1000000 * asciiSum) % 1000000000;
+
+    map<unsigned int, list<int> >::iterator it;
+    it = hashMap.find(hash);
+
+    if (it == hashMap.end()) { // creating new bin
+      it = hashMap.begin();
+      list<int> representants;
+      representants.push_back(i);
+      hashMap.insert(pair<unsigned int, list<int> >(hash, representants));
+    } else { // add to existing bin
+      it->second.push_back(i); 
+    }
+  }
+}
+
 void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, l_uint32 templateIdx, 
 					std::map<l_uint32, OcrResult*> &ocrResults) {
   if (!pix) {
@@ -577,7 +623,13 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
 ////    int * confidences;
     ////ocrResult->setCharsWithConfidences("",confidences);
   //} else {
-    ocrResult = recognizeLetter(pix);
+
+
+
+//    ocrResult = recognizeLetter(pix);
+
+
+
 	//}
   ocrResults.insert(pair<l_uint32, OcrResult*>(templateIdx,ocrResult));
   unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
@@ -598,20 +650,6 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
   }  
 }
 
-void autoThrashUsingOCRHash(struct jbig2ctx *ctx) {
-  if (!ctx) {
-    fprintf(stderr, "jbig2ctx not given\n");
-    return;
-  }
-  std::map<unsigned int, std::list<int> > hashedTemplates;
-
-  // creating hash value for each representant
-  PIXA *jbPixa = ctx->classer->pixat; 
-  for (int i = 0; i < pixaGetCount(jbPixa); i++) {
-    countHash(jbPixa->pix[i], hashedTemplates, i);
-  }
-}
-
 
 /** checks all PIXes in pixat (pixa of templates) if they are the same
  *  if they are the same it calls method that makes from them only one template
@@ -628,10 +666,11 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx) {
 
   // creating hash value for each representant
   PIXA *jbPixa = ctx->classer->pixat; 
-  for (int i = 0; i < pixaGetCount(jbPixa); i++) {
-    countHashWithOCR(jbPixa->pix[i], hashedTemplates, i, ocrResults);
-  }
+  //for (int i = 0; i < pixaGetCount(jbPixa); i++) {
+    //countHashWithOCR(jbPixa->pix[i], hashedTemplates, i, ocrResults);
+  //}
 
+  countHashWithOCR(jbPixa, hashedTemplates, ocrResults);
   map<unsigned int, list<int> > newRepresentants; // where int is chosenOne and vector<int> are old ones which should be replaced by chosenOne (united with it)
   // going through representants with the same hash
   std::map<unsigned int, list<int> >::iterator it;
