@@ -381,9 +381,9 @@ main(int argc, char **argv) {
 
   //PIX * firstImg;
   //PIX * secondImg;
-  int imgNum = 0;
+  //int imgNum = 0;
 
-  int dpiResolution = 0; // added by RH
+  l_uint32 dpiResolution = 0; // added by RH
   int numsubimages=0, subimage=0, num_pages = 0;
   while (i < argc) {
     if (subimage==numsubimages) {
@@ -394,8 +394,7 @@ main(int argc, char **argv) {
         return 1;
       }
       l_int32 filetype;
-	  findFileFormat(fp, &filetype);
-	  //findFileFormat(argv[i], &filetype);
+      findFileFormatStream(fp, &filetype);
       if (filetype==IFF_TIFF && tiffGetCount(fp, &numsubimages)) {
         return 1;
       }
@@ -510,8 +509,12 @@ main(int argc, char **argv) {
     if (useOcr) {
       if (dpiResolution >= 200) {
         fprintf(stderr, "Using hash and OCR\n");
+		if (threshold > 0.86) {
+	 	  autoThresholdUsingHash(ctx);
+		}
         autoThresholdUsingHashAndOCR(ctx);
       } else {
+        fprintf(stderr, "Quality of input image is not good enough for OCR (%d < 200 dpi) => running without OCR)", dpiResolution);
         autoThresholdUsingHash(ctx);
       }
     }
