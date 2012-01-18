@@ -51,13 +51,6 @@
 #include "ocrResult.h"
 #include "jbig2ocr.h"
 
-//#include <iulib/imgio.h>
-//#include <iulib/imglib.h>
-
-
-
-//using namespace colib;
-//using namespace iulib;
 using namespace std;
 
 // -----------------------------------------------------------------------------
