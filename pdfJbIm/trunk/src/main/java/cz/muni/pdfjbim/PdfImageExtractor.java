@@ -14,7 +14,6 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
 
 import com.itextpdf.text.DocumentException;
@@ -58,8 +57,7 @@ public class PdfImageExtractor {
     private List<String> namesOfImages = new ArrayList<String>();
     private List<PdfImageInformation> originalImageInformations = new ArrayList<PdfImageInformation>();
     private boolean silent = false;
-
-    private static final Logger logger = LoggerFactory.getLogger(PdfImageExtractor.class);
+    private static final Logger log = LoggerFactory.getLogger(PdfImageExtractor.class);
 
     /**
      * @return names of images in a list
@@ -88,9 +86,7 @@ public class PdfImageExtractor {
         this.silent = silent;
     }
 
-
-
-/**
+    /**
      * This method extracts images from PDF
      * @param pdfFile input PDF file
      * @param password password for access to PDF if needed
@@ -101,7 +97,7 @@ public class PdfImageExtractor {
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
     public void extractImages(File pdfFile, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
-         if (binarize == null) {
+        if (binarize == null) {
             binarize = false;
         }
         // checking arguments and setting appropriate variables
@@ -126,7 +122,7 @@ public class PdfImageExtractor {
         }
     }
 
-   /**
+    /**
      * This method extracts images from PDF
      * @param pdfFile name of input PDF file
      * @param password password for access to PDF if needed
@@ -181,8 +177,6 @@ public class PdfImageExtractor {
         extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
     }
 
-
-
     /**
      * This method extracts images by going through all COSObjects pointed from xref table
      * @param is input stream containing PDF file
@@ -194,11 +188,14 @@ public class PdfImageExtractor {
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
+    public void extractImagesUsingPdfParser(InputStream is, String prefix, String password, Set<Integer> pagesToProcess,
+            Boolean binarize) throws PdfRecompressionException {
         // checking arguments and setting appropriate variables
         if (binarize == null) {
             binarize = false;
         }
+
+        log.debug("Extracting images (binarize set to {})", binarize);
 
         InputStream inputStream = null;
         if (password != null) {
@@ -247,35 +244,39 @@ public class PdfImageExtractor {
 
                         PDStream pdStr = new PDStream(image.getCOSStream());
                         List filters = pdStr.getFilters();
+                        
+                        log.debug("Detected image with color depth: {} bits", image.getBitsPerComponent());
+                        if (filters == null) {
+                            continue;
+                        }
+                        log.debug("Detected filters: {}", filters.toString());
+
 
                         if ((image.getBitsPerComponent() > 1) && (!binarize)) {
-                            if (!silent) {
-                                logger.info("It is not a bitonal image => skipping");
-                            }
+                            log.info("It is not a bitonal image => skipping");
                             continue;
                         }
 
                         // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                         if (filters.contains(COSName.LZW_DECODE.getName())) {
-                            if (!silent) {
-                                logger.info("This is LZWDecoded => skipping");
-                            }
+                            log.info("This is LZWDecoded => skipping");
+
                             continue;
 
+                        }
+
+                        if (filters.contains(COSName.FLATE_DECODE.getName())) {
+                            log.debug("FlateDecoded image detected");
                         }
 
                         // detection of unsupported filters by pdfBox library
                         if (filters.contains("JBIG2Decode")) {
-                            if (!silent) {
-                                logger.info("Allready compressed according to JBIG2 standard => skipping");
-                            }
+                            log.info("Allready compressed according to JBIG2 standard => skipping");
                             continue;
                         }
 
                         if (filters.contains("JPXDecode")) {
-                            if (!silent) {
-                                System.err.println("Unsupported filter JPXDecode => skipping");
-                            }
+                            System.err.println("Unsupported filter JPXDecode => skipping");
                             continue;
                         }
 
@@ -306,21 +307,23 @@ public class PdfImageExtractor {
             }
         }
     }
+    
 
-
-   /**
+    /**
      * @deprecated -- do not use doesn't work properly yet
      * This method extracts images by going through PDF tree structure
      * @param pdfFile name of input PDF file
+     * @param prefix 
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
      *      -- not working yet
-     * @param silent -- if true error messages are not written to output otherwise they are
+ //    * @param silent -- if true error messages are not written to output otherwise they are
      * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImagesUsingPdfObjectAccess(String pdfFile, String password, Set<Integer> pagesToProcess, Boolean silent, Boolean binarize) throws PdfRecompressionException {
+    public void extractImagesUsingPdfObjectAccess(String pdfFile, String prefix, String password, 
+            Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
         }
@@ -329,7 +332,6 @@ public class PdfImageExtractor {
             throw new IllegalArgumentException(pdfFile);
         }
 
-        String prefix = null;
 
         InputStream inputStream = null;
         if (password != null) {
@@ -408,25 +410,25 @@ public class PdfImageExtractor {
                                 PDStream pdStr = new PDStream(image.getCOSStream());
                                 List filters = pdStr.getFilters();
 
-                                if (image.getBitsPerComponent() > 1) {
-                                    logger.info("It is not a bitonal image => skipping");
+                                if (image.getBitsPerComponent() > 1 && !binarize) {
+                                    log.info("It is not a bitonal image => skipping");
                                     continue;
                                 }
 
                                 // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                                 if (filters.contains(COSName.LZW_DECODE.getName())) {
-                                    logger.info("This is LZWDecoded => skipping");
+                                    log.info("This is LZWDecoded => skipping");
                                     continue;
 
                                 }
 
                                 // detection of unsupported filters by pdfBox library
                                 if (filters.contains("JBIG2Decode")) {
-                                    logger.info("Allready compressed according to JBIG2 standard => skipping");
+                                    log.info("Allready compressed according to JBIG2 standard => skipping");
                                     continue;
                                 }
                                 if (filters.contains("JPXDecode")) {
-                                    logger.info("Unsupported filter JPXDecode => skipping");
+                                    log.info("Unsupported filter JPXDecode => skipping");
                                     continue;
                                 }
 
@@ -437,13 +439,13 @@ public class PdfImageExtractor {
                                 System.err.println(objectNum + " " + genNum + " obj");
 
                                 String name = getUniqueFileName(prefix + imKey, image.getSuffix());
-                                logger.debug("Writing image:" + name);
+                                log.debug("Writing image:" + name);
                                 image.write2file(name);
 
                                 PdfImageInformation pdfImageInfo =
                                         new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
                                 originalImageInformations.add(pdfImageInfo);
-                                logger.debug(pdfImageInfo.toString());
+                                log.debug(pdfImageInfo.toString());
 
                                 namesOfImages.add(name + "." + image.getSuffix());
                             }
@@ -482,5 +484,4 @@ public class PdfImageExtractor {
         }
         return uniqueName;
     }
-
 }
