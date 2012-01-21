@@ -196,6 +196,7 @@ public class Run {
 
         // image extraction
         imageExtractor.extractImages(pdfFile, password, pagesToProcess, binarize);
+//        imageExtractor.extractImagesUsingPdfObjectAccess(pdfFile, null, password, pagesToProcess, binarize);
 
         // returns names of extracted images as List
         List<String> jbig2encInputImages = imageExtractor.getNamesOfImages();

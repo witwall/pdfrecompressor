@@ -14,7 +14,6 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
 
 import com.itextpdf.text.DocumentException;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 public class PdfImageReplacer {
 
     private boolean silent = false;
-
     private static final Logger logger = LoggerFactory.getLogger(PdfImageReplacer.class);
 
     public Boolean getSilent() {
@@ -61,8 +59,7 @@ public class PdfImageReplacer {
         this.silent = silent;
     }
 
-    
-            /**
+    /**
      * replace images by they recompressed version according to JBIG2 standard
      * positions and image data given in imagesData
      * @param pdfName represents name of original PDF file
@@ -70,9 +67,9 @@ public class PdfImageReplacer {
      * @param imagesData contains compressed images according to JBIG2 standard and informations about them
      * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
      */
-    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData) 
+    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData)
             throws PdfRecompressionException {
-        
+
         try {
             replaceImageUsingIText(new FileInputStream(pdfName), os, imagesData);
         } catch (FileNotFoundException ex) {
@@ -80,9 +77,8 @@ public class PdfImageReplacer {
             throw new PdfRecompressionException(ex);
         }
     }
-    
-    
-        /**
+
+    /**
      * replace images by they recompressed version according to JBIG2 standard
      * positions and image data given in imagesData
      * @param originalPdf represents name of original PDF file
@@ -196,7 +192,9 @@ public class PdfImageReplacer {
             throw new PdfRecompressionException(dEx);
         } finally {
             try {
-                stp.close();
+                if (stp != null) {
+                    stp.close();
+                }
             } catch (DocumentException ex) {
                 logger.error("Exception thrown while closing stream", ex);
             } catch (IOException ex) {
