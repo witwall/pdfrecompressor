@@ -33,10 +33,10 @@ public class Jbig2enc {
 
     private String jbig2enc;
     private double defaultThresh = 0.85;
-    private Boolean autoThresh = false;
+    private boolean autoThresh = false;
     private int bwThresh = 188;
-    private Boolean silent = false;
     private static final Logger logger = LoggerFactory.getLogger(Jbig2enc.class);
+    private boolean useOcr = false;
 
     public Jbig2enc(String jbig2enc) {
         if (jbig2enc == null) {
@@ -49,17 +49,15 @@ public class Jbig2enc {
         this.jbig2enc = "jbig2";
     }
 
-    public Boolean getAutoThresh() {
+    public boolean isAutoThresh() {
         return autoThresh;
     }
 
-    public void setAutoThresh(Boolean autoThresh) {
-        if (autoThresh != null) {
-            this.autoThresh = autoThresh;
-        }
+    public void setAutoThresh(boolean autoThresh) {
+        this.autoThresh = autoThresh;
     }
 
-    public Integer getBwThresh() {
+    public int getBwThresh() {
         return bwThresh;
     }
 
@@ -70,7 +68,7 @@ public class Jbig2enc {
         this.bwThresh = bwThresh;
     }
 
-    public Double getDefaultThresh() {
+    public double getDefaultThresh() {
         return defaultThresh;
     }
 
@@ -92,13 +90,15 @@ public class Jbig2enc {
         this.jbig2enc = jbig2enc;
     }
 
-    public Boolean getSilent() {
-        return silent;
+    public boolean isUseOcr() {
+        return useOcr;
     }
 
-    public void setSilent(boolean silent) {
-        this.silent = silent;
+    public void setUseOcr(boolean useOcr) {
+        this.useOcr = useOcr;
     }
+
+
 
     /**
      * run jbig2enc with symbol coding used and output in format suitable for PDF
@@ -111,19 +111,14 @@ public class Jbig2enc {
             basename = "output";
         }
 
-
         if (imageList == null) {
             throw new NullPointerException("imageList");
         }
 
-
         if (imageList.isEmpty()) {
-            if (!silent) {
-                logger.info("there are no images for running jbig2enc at (given list is empty)");
-            }
+            logger.info("there are no images for running jbig2enc at (given list is empty)");
             return;
         }
-
 
 
         List<String> toRun = new ArrayList<String>();
@@ -140,7 +135,12 @@ public class Jbig2enc {
 
         if (autoThresh) {
             toRun.add("-autoThresh");
+            
+            if (useOcr) {
+                toRun.add("-useOcr");
+            }
         }
+        
 
         toRun.addAll(imageList);
 
@@ -176,15 +176,15 @@ public class Jbig2enc {
             }
             if (exitValue != 0) {
                 logger.warn("jbig2enc ended with error " + exitValue);
-                Tools.deleteFilesFromList(imageList, silent);
-                System.exit(3);
+                Tools.deleteFilesFromList(imageList);
+                throw new PdfRecompressionException("jbig2enc ended with error " + exitValue);
             }
         } catch (IOException ex) {
             logger.warn("running jbig2enc caused IOException", ex);
         } catch (InterruptedException ex2) {
             logger.warn("running jbig2enc was interupted", ex2);
         } finally {
-            Tools.deleteFilesFromList(imageList, silent);
+            Tools.deleteFilesFromList(imageList);
         }
     }
 }

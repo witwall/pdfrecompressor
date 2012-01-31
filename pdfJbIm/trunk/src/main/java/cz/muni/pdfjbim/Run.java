@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Run {
 
-    private static final Logger logger = LoggerFactory.getLogger(Run.class);
+    private static final Logger log = LoggerFactory.getLogger(Run.class);
 
     /**
      * @param args the command line arguments
@@ -120,7 +120,7 @@ public class Run {
                 }
                 continue;
             }
-            
+
 
             if (args[i].equalsIgnoreCase("-bw_thresh")) {
                 i++;
@@ -192,8 +192,6 @@ public class Run {
         // PdfImageProcessor handles extraction of pdf and putting recompressed images
         PdfImageExtractor imageExtractor = new PdfImageExtractor();
 
-        imageExtractor.setSilent(silent); // if stderr output shall be printed or not
-
         // image extraction
         imageExtractor.extractImages(pdfFile, password, pagesToProcess, binarize);
 //        imageExtractor.extractImagesUsingPdfObjectAccess(pdfFile, null, password, pagesToProcess, binarize);
@@ -202,7 +200,7 @@ public class Run {
         List<String> jbig2encInputImages = imageExtractor.getNamesOfImages();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
-                logger.info("No images in " + pdfFile + " to recompress");
+                log.info("No images in " + pdfFile + " to recompress");
             }
 //            System.exit(0);
         } else {
@@ -212,7 +210,6 @@ public class Run {
             jbig2.setAutoThresh(autoThresh); // engages modified version of the jbig2 encoder
             jbig2.setBwThresh(bwThresh);
             jbig2.setDefaultThresh(defaultThresh);
-            jbig2.setSilent(silent);
 
             // engages jbig2enc with set parameters and creates output files based on basename
             jbig2.run(jbig2encInputImages, basename);
@@ -232,11 +229,11 @@ public class Run {
 
             if (fileName.createNewFile()) {
                 if (!silent) {
-                    logger.info("file " + outputPdf + " was created");
+                    log.info("file " + outputPdf + " was created");
                 }
             } else {
                 if (!silent) {
-                    logger.info("file " + outputPdf + " already exist => will be rewriten");
+                    log.info("file " + outputPdf + " already exist => will be rewriten");
                 }
             }
             out = new FileOutputStream(fileName);
@@ -244,26 +241,24 @@ public class Run {
             // replaces images with their recompressed version based on image info and is stored
             // in output stream (out)
             PdfImageReplacer imageReplacer = new PdfImageReplacer();
-            imageReplacer.setSilent(true);
             imageReplacer.replaceImageUsingIText(pdfFile, out, pdfImages);
 
             // counting some logging info concerning sizes of input vs output
             long sizeOfOutputPdf = fileName.length();
             float saved = (((float) (sizeOfInputPdf - sizeOfOutputPdf)) / sizeOfInputPdf) * 100;
-            System.out.println("Size of pdf before recompression = " + sizeOfInputPdf);
-            System.out.println("Size of pdf file after recompression = " + sizeOfOutputPdf);
-            System.out.println("=> Saved " + String.format("%.2f", saved) + " % from original size");
+            if (!silent) {
+                log.info("Size of pdf before recompression = {}", sizeOfInputPdf);
+                log.info("Size of pdf file after recompression = {}", sizeOfOutputPdf);
+                log.info("=> Saved {} % from original size", String.format("%.2f", saved));
+            }
         } catch (IOException ex) {
-            logger.warn("writing output to the file caused error", ex);
+            log.warn("writing output to the file caused error", ex);
             System.exit(2);
         } finally {
             if (out != null) {
                 try {
                     out.close();
                 } catch (IOException ex2) {
-                    if (!silent) {
-                        ex2.printStackTrace(System.err);
-                    }
                 }
             }
         }
@@ -274,9 +269,8 @@ public class Run {
         int hour = time / 3600;
         int min = (time % 3600) / 60;
         int sec = (time % 3600) % 60;
-        System.out.print("\n" + pdfFile + " succesfully recompressed in ");
-        System.out.println(String.format("%02d:%02d:%02d", hour, min, sec));
-        System.out.println("Totaly was recompressed " + pdfImages.getMapOfJbig2Images().size() + " images");
+        log.info("{} succesfully recompressed in {}", pdfFile, String.format("%02d:%02d:%02d", hour, min, sec));
+        log.info("Totaly was recompressed {} images", pdfImages.getMapOfJbig2Images().size());
     }
 
     /**

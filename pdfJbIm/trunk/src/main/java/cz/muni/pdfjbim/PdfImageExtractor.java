@@ -16,16 +16,29 @@
  */
 package cz.muni.pdfjbim;
 
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.PRIndirectReference;
+import com.itextpdf.text.pdf.PRStream;
+import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.PdfIndirectReference;
+import com.itextpdf.text.pdf.PdfName;
+import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.PdfStream;
+import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
+import cz.muni.pdfjbim.pdf.MyImageRenderListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +69,6 @@ public class PdfImageExtractor {
     private int imageCounter = 1;
     private List<String> namesOfImages = new ArrayList<String>();
     private List<PdfImageInformation> originalImageInformations = new ArrayList<PdfImageInformation>();
-    private boolean silent = false;
     private static final Logger log = LoggerFactory.getLogger(PdfImageExtractor.class);
 
     /**
@@ -72,18 +84,6 @@ public class PdfImageExtractor {
      */
     public List<PdfImageInformation> getOriginalImageInformations() {
         return originalImageInformations;
-    }
-
-    public Boolean getSilent() {
-        return silent;
-    }
-
-    /**
-     * if silent is set to true no error output is printed     *
-     * @param silent sets if error output shall be written to stderr or not
-     */
-    public void setSilent(boolean silent) {
-        this.silent = silent;
     }
 
     /**
@@ -176,6 +176,98 @@ public class PdfImageExtractor {
         String prefix = PdfImageExtractor.class.getName();
         extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
     }
+    
+    /**
+     * Parses a PDF and extracts all the images.
+     * @param filename 
+     * @throws IOException
+     * @throws DocumentException  
+     */
+    public static void extractImages(String filename) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(filename);
+        PdfReaderContentParser parser = new PdfReaderContentParser(reader);
+        MyImageRenderListener listener = new MyImageRenderListener("Img%s.%s");
+        for (int i = 1; i <= reader.getNumberOfPages(); i++) {
+            parser.processContent(i, listener);
+        }
+    }
+
+    public void extractJbig2Images(InputStream is) throws PdfRecompressionException {
+        if (is == null) {
+            throw new IllegalArgumentException("InputStream not given");
+        }
+
+
+        PdfReader pdfReader = null;
+        try {
+            pdfReader = new PdfReader(is);
+
+            for (int i = 0; i <= pdfReader.getNumberOfPages(); i++) {
+                PdfDictionary d = pdfReader.getPageN(i);
+                PdfIndirectReference ir = d.getAsIndirectObject(PdfName.CONTENTS);
+                PdfObject o = pdfReader.getPdfObject(ir.getNumber());
+                PdfStream stream = (PdfStream) o;
+                PdfObject pdfsubtype = stream.get(PdfName.SUBTYPE);
+                if (pdfsubtype != null && pdfsubtype.toString().equals(PdfName.IMAGE.toString())) {
+                    byte[] img = PdfReader.getStreamBytesRaw((PRStream) stream);
+                    OutputStream out = new FileOutputStream(new File("pdfRecompressor", String.format("%1$05d", i) + ".jpg"));
+                    out.write(img);
+                    out.flush();
+                    out.close();
+                }
+
+            }
+
+
+        } catch (IOException ex) {
+            log.error("IOException caught while trying to extract jbig2 images from PDF", ex);
+            throw new PdfRecompressionException("IOException caught while trying to extract jbig2 images from PDF", ex);
+        } finally {
+            if (pdfReader != null) {
+                pdfReader.close();
+            }
+        }
+
+    }
+
+    private List<Image> GetImagesFromPdfDict(PdfDictionary dict, PdfReader doc) throws IOException {
+        List<Image> images = new ArrayList<Image>();
+        PdfDictionary res = (PdfDictionary) (PdfReader.getPdfObject(dict.get(PdfName.RESOURCES)));
+        PdfDictionary xobj = (PdfDictionary) (PdfReader.getPdfObject(res.get(PdfName.XOBJECT)));
+
+        if (xobj != null) {
+            for (PdfName name : xobj.getKeys()) {
+                PdfObject obj = xobj.get(name);
+                if (obj.isIndirect()) {
+                    PdfDictionary tg = (PdfDictionary) (PdfReader.getPdfObject(obj));
+                    PdfName subtype = (PdfName) (PdfReader.getPdfObject(tg.get(PdfName.SUBTYPE)));
+                    if (PdfName.IMAGE.equals(subtype)) {
+                        int xrefIdx = ((PRIndirectReference) obj).getNumber();
+                        PdfObject pdfObj = doc.getPdfObject(xrefIdx);
+                        PdfStream str = (PdfStream) (pdfObj);
+                        byte[] bytes = PdfReader.getStreamBytesRaw((PRStream) str);
+
+                        String filter = tg.get(PdfName.FILTER).toString();
+                        String width = tg.get(PdfName.WIDTH).toString();
+                        String height = tg.get(PdfName.HEIGHT).toString();
+                        String bpp = tg.get(PdfName.BITSPERCOMPONENT).toString();
+
+                        if ("/FlateDecode".equals(filter)) {
+                            bytes = PdfReader.FlateDecode(bytes, true);
+                            try {
+                                images.add(Image.getInstance(bytes));
+                            } catch (BadElementException ex) {
+                                log.warn("problem to process FlatDecoded Image", ex);
+                            }
+                        } else if (PdfName.FORM.equals(subtype) || PdfName.GROUP.equals(subtype)) {
+                            images.addAll(GetImagesFromPdfDict(tg, doc));
+                        }
+                    }
+                }
+            }
+        }
+        return images;
+    }
 
     /**
      * This method extracts images by going through all COSObjects pointed from xref table
@@ -244,7 +336,7 @@ public class PdfImageExtractor {
 
                         PDStream pdStr = new PDStream(image.getCOSStream());
                         List filters = pdStr.getFilters();
-                        
+
                         log.debug("Detected image with color depth: {} bits", image.getBitsPerComponent());
                         if (filters == null) {
                             continue;
@@ -271,17 +363,17 @@ public class PdfImageExtractor {
 
                         // detection of unsupported filters by pdfBox library
                         if (filters.contains("JBIG2Decode")) {
-                            log.info("Allready compressed according to JBIG2 standard => skipping");
+                            log.warn("Allready compressed according to JBIG2 standard => skipping");
                             continue;
                         }
 
                         if (filters.contains("JPXDecode")) {
-                            System.err.println("Unsupported filter JPXDecode => skipping");
+                            log.warn("Unsupported filter JPXDecode => skipping");
                             continue;
                         }
 
                         String name = getUniqueFileName(prefix, image.getSuffix());
-//                        System.out.println("Writing image:" + name);
+                        log.info("Writing image: {}", name);
                         image.write2file(name);
 
 
@@ -307,7 +399,6 @@ public class PdfImageExtractor {
             }
         }
     }
-    
 
     /**
      * @deprecated -- do not use doesn't work properly yet
@@ -317,12 +408,12 @@ public class PdfImageExtractor {
      * @param password password for access to PDF if needed
      * @param pagesToProcess list of pages which should be processed if null given => processed all pages
      *      -- not working yet
- //    * @param silent -- if true error messages are not written to output otherwise they are
+    //    * @param silent -- if true error messages are not written to output otherwise they are
      * @param binarize -- enables processing of nonbitonal images as well (LZW is still not
      *      processed because of output with inverted colors)
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
-    public void extractImagesUsingPdfObjectAccess(String pdfFile, String prefix, String password, 
+    public void extractImagesUsingPdfObjectAccess(String pdfFile, String prefix, String password,
             Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
         if (binarize == null) {
             binarize = false;
@@ -436,7 +527,7 @@ public class PdfImageExtractor {
                                 COSObject cosObj = new COSObject(image.getCOSObject());
                                 int objectNum = cosObj.getObjectNumber().intValue();
                                 int genNum = cosObj.getGenerationNumber().intValue();
-                                System.err.println(objectNum + " " + genNum + " obj");
+                                log.debug(objectNum + " " + genNum + " obj");
 
                                 String name = getUniqueFileName(prefix + imKey, image.getSuffix());
                                 log.debug("Writing image:" + name);

@@ -35,13 +35,11 @@ public class Tools {
     /**
      * @param filesToDelete list of fileNames to be deleted
      */
-    public static void deleteFilesFromList(List<String> filesToDelete, boolean silent) {
+    public static void deleteFilesFromList(List<String> filesToDelete) {
         for (int i = 0; i < filesToDelete.size(); i++) {
             File fileToDelete = new File(filesToDelete.get(i));
             if (!fileToDelete.delete()) {
-                if (!silent) {
-                    logger.warn("problem to delete file: " + fileToDelete.getPath());
-                }
+                logger.warn("problem to delete file: " + fileToDelete.getPath());
             }
         }
     }
@@ -49,13 +47,11 @@ public class Tools {
     /**
      * @param filesToDelete list of fileNames to be deleted
      */
-    public static void deleteFilesFromList(File[] filesToDelete, boolean silent) {
+    public static void deleteFilesFromList(File[] filesToDelete) {
         for (int i = 0; i < filesToDelete.length; i++) {
             File fileToDelete = filesToDelete[i];
             if (!fileToDelete.delete()) {
-                if (!silent) {
-                    logger.warn("problem to delete file: " + fileToDelete.getPath());
-                }
+                logger.warn("problem to delete file: " + fileToDelete.getPath());
             }
         }
     }
@@ -67,8 +63,6 @@ public class Tools {
      * @throws IOException
      */
     public static void copy(File fromFile, File toFile) throws IOException {
-
-
         if (!fromFile.exists()) {
             throw new IOException("FileCopy: " + "no such source file: "
                     + fromFile.getName());
@@ -148,7 +142,6 @@ public class Tools {
      * @throws IOException
      */
     public static void copyDir(File sourceDir, File destinationDir) throws IOException {
-
         if (sourceDir == null) {
             throw new NullPointerException("sourceDir");
         }

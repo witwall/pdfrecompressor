@@ -38,6 +38,8 @@ public class PdfImageInformation {
      * @param key represents pdf object key to which was associated this image
      * @param width represents width of image
      * @param height represents height of image
+     * @param objectNum 
+     * @param genNum 
      * @param pageNumber represents page number in original pdf dokument
      */
     public PdfImageInformation(String key, int width, int height, int objectNum, int genNum, int pageNumber) {
@@ -54,6 +56,8 @@ public class PdfImageInformation {
      * @param key represents pdf object key to which was associated this image
      * @param width represents width of image
      * @param height represents height of image
+     * @param objectNum
+     * @param genNum  
      */
     public PdfImageInformation(String key, int width, int height, int objectNum, int genNum) {
         this.key = key;
