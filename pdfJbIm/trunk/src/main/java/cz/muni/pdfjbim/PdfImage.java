@@ -60,8 +60,9 @@ public class PdfImage {
 
     /**
      * return byte array of image data
-     * @throws pdfrecompression.PdfRecompressionException if file wasn't found
-     *      or there is too muchdata in the file that cannot be contained in one byte array
+     * @return byte array with image data
+     * @throws PdfRecompressionException if file wasn't found
+     *      or there is too much data in the file that cannot be contained in one byte array
      */
     public byte[] getImageData() throws PdfRecompressionException {
         Long sizeOfFile = imageDataFile.length();
@@ -92,6 +93,8 @@ public class PdfImage {
      * @param pageNum represents number of page in PDF where is this image belong to
      * @param width represents with of image
      * @param height represents height of image
+     * @param objNum
+     * @param genNum  
      */
     public void setPdfImageInformation(String key, int pageNum, int width, int height, int objNum, int genNum) {
         pdfImageInformation = new PdfImageInformation(key, width, height, objNum, genNum);

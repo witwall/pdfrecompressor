@@ -14,9 +14,7 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
-
 
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
@@ -68,9 +66,7 @@ public class PdfImageProcessor {
     private int imageCounter = 1;
     private List<String> namesOfImages = new ArrayList<String>();
     private List<PdfImageInformation> originalImageInformations = new ArrayList<PdfImageInformation>();
-    private boolean silent = false;
-
-    private static final Logger logger = LoggerFactory.getLogger(PdfImageProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(PdfImageProcessor.class);
 
     /**
      * @return names of images in a list
@@ -87,21 +83,7 @@ public class PdfImageProcessor {
         return originalImageInformations;
     }
 
-    public Boolean getSilent() {
-        return silent;
-    }
-
     /**
-     * if silent is set to true no error output is printed     *
-     * @param silent sets if error output shall be written to stderr or not
-     */
-    public void setSilent(boolean silent) {
-        this.silent = silent;
-    }
-
-
-    
-/**
      * This method extracts images from PDF
      * @param pdfFile input PDF file
      * @param password password for access to PDF if needed
@@ -112,7 +94,7 @@ public class PdfImageProcessor {
      * @throws PdfRecompressionException if problem to extract images from PDF
      */
     public void extractImages(File pdfFile, String password, Set<Integer> pagesToProcess, Boolean binarize) throws PdfRecompressionException {
-         if (binarize == null) {
+        if (binarize == null) {
             binarize = false;
         }
         // checking arguments and setting appropriate variables
@@ -137,7 +119,7 @@ public class PdfImageProcessor {
         }
     }
 
-   /**
+    /**
      * This method extracts images from PDF
      * @param pdfFile name of input PDF file
      * @param password password for access to PDF if needed
@@ -192,8 +174,6 @@ public class PdfImageProcessor {
         extractImagesUsingPdfParser(is, prefix, password, pagesToProcess, binarize);
     }
 
-
-
     /**
      * This method extracts images by going through all COSObjects pointed from xref table
      * @param is input stream containing PDF file
@@ -209,7 +189,7 @@ public class PdfImageProcessor {
         if (binarize == null) {
             binarize = false;
         }
-        
+
         InputStream inputStream = null;
         if (password != null) {
             try {
@@ -236,7 +216,7 @@ public class PdfImageProcessor {
             doc = parser.getDocument();
 
 
-            List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);            
+            List<COSObject> objs = doc.getObjectsByType(COSName.XOBJECT);
             if (objs != null) {
                 for (COSObject obj : objs) {
                     COSBase subtype = obj.getItem(COSName.SUBTYPE);
@@ -259,38 +239,31 @@ public class PdfImageProcessor {
                         List filters = pdStr.getFilters();
 
                         if ((image.getBitsPerComponent() > 1) && (!binarize)) {
-                            if (!silent) {
-                                logger.info("It is not a bitonal image => skipping");
-                            }
+                            log.info("It is not a bitonal image => skipping");
+
                             continue;
                         }
 
                         // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                         if (filters.contains(COSName.LZW_DECODE.getName())) {
-                            if (!silent) {
-                                logger.info("This is LZWDecoded => skipping");
-                            }
+                            log.info("This is LZWDecoded => skipping");
                             continue;
 
                         }
 
                         // detection of unsupported filters by pdfBox library
                         if (filters.contains("JBIG2Decode")) {
-                            if (!silent) {
-                                logger.info("Allready compressed according to JBIG2 standard => skipping");
-                            }
+                            log.warn("Allready compressed according to JBIG2 standard => skipping");
                             continue;
                         }
 
                         if (filters.contains("JPXDecode")) {
-                            if (!silent) {
-                                System.err.println("Unsupported filter JPXDecode => skipping");
-                            }
+                            log.warn("Unsupported filter JPXDecode => skipping");
                             continue;
                         }
 
                         String name = getUniqueFileName(prefix, image.getSuffix());
-//                        System.out.println("Writing image:" + name);
+                        log.info("Writing image:" + name);
                         image.write2file(name);
 
 
@@ -317,8 +290,7 @@ public class PdfImageProcessor {
         }
     }
 
-
-   /**
+    /**
      * @deprecated -- do not use doesn't work properly yet
      * This method extracts images by going through PDF tree structure
      * @param pdfFile name of input PDF file
@@ -419,24 +391,24 @@ public class PdfImageProcessor {
                                 List filters = pdStr.getFilters();
 
                                 if (image.getBitsPerComponent() > 1) {
-                                    logger.info("It is not a bitonal image => skipping");
+                                    log.info("It is not a bitonal image => skipping");
                                     continue;
                                 }
 
                                 // at this moment for preventing bad output (bad coloring) from LZWDecode filter
                                 if (filters.contains(COSName.LZW_DECODE.getName())) {
-                                    logger.info("This is LZWDecoded => skipping");
+                                    log.info("This is LZWDecoded => skipping");
                                     continue;
 
                                 }
 
                                 // detection of unsupported filters by pdfBox library
                                 if (filters.contains("JBIG2Decode")) {
-                                    logger.info("Allready compressed according to JBIG2 standard => skipping");
+                                    log.info("Allready compressed according to JBIG2 standard => skipping");
                                     continue;
                                 }
                                 if (filters.contains("JPXDecode")) {
-                                    logger.info("Unsupported filter JPXDecode => skipping");
+                                    log.info("Unsupported filter JPXDecode => skipping");
                                     continue;
                                 }
 
@@ -444,16 +416,16 @@ public class PdfImageProcessor {
                                 COSObject cosObj = new COSObject(image.getCOSObject());
                                 int objectNum = cosObj.getObjectNumber().intValue();
                                 int genNum = cosObj.getGenerationNumber().intValue();
-                                System.err.println(objectNum + " " + genNum + " obj");
+                                log.debug(objectNum + " " + genNum + " obj");
 
                                 String name = getUniqueFileName(prefix + imKey, image.getSuffix());
-                                logger.debug("Writing image:" + name);
+                                log.debug("Writing image:" + name);
                                 image.write2file(name);
 
                                 PdfImageInformation pdfImageInfo =
                                         new PdfImageInformation(key, image.getWidth(), image.getHeight(), objectNum, genNum);
                                 originalImageInformations.add(pdfImageInfo);
-                                logger.debug(pdfImageInfo.toString());
+                                log.debug(pdfImageInfo.toString());
 
                                 namesOfImages.add(name + "." + image.getSuffix());
                             }
@@ -516,7 +488,7 @@ public class PdfImageProcessor {
 
         Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
 
-       
+
         PdfReader pdf;
         PdfStamper stp = null;
         try {
@@ -607,7 +579,7 @@ public class PdfImageProcessor {
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         } finally {
-            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]), silent);
+            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]));
         }
     }
 }

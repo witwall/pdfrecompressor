@@ -44,20 +44,8 @@ import org.slf4j.LoggerFactory;
  */
 public class PdfImageReplacer {
 
-    private boolean silent = false;
-    private static final Logger logger = LoggerFactory.getLogger(PdfImageReplacer.class);
+    private static final Logger log = LoggerFactory.getLogger(PdfImageReplacer.class);
 
-    public Boolean getSilent() {
-        return silent;
-    }
-
-    /**
-     * if silent is set to true no error output is printed     *
-     * @param silent sets if error output shall be written to stderr or not
-     */
-    public void setSilent(boolean silent) {
-        this.silent = silent;
-    }
 
     /**
      * replace images by they recompressed version according to JBIG2 standard
@@ -73,7 +61,7 @@ public class PdfImageReplacer {
         try {
             replaceImageUsingIText(new FileInputStream(pdfName), os, imagesData);
         } catch (FileNotFoundException ex) {
-            logger.error("Original PDF not found", ex);
+            log.error("Original PDF not found", ex);
             throw new PdfRecompressionException(ex);
         }
     }
@@ -196,11 +184,11 @@ public class PdfImageReplacer {
                     stp.close();
                 }
             } catch (DocumentException ex) {
-                logger.error("Exception thrown while closing stream", ex);
+                log.error("Exception thrown while closing stream", ex);
             } catch (IOException ex) {
-                logger.error("Exception thrown while closing stream", ex);
+                log.error("Exception thrown while closing stream", ex);
             }
-            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]), silent);
+            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]));
         }
     }
 }

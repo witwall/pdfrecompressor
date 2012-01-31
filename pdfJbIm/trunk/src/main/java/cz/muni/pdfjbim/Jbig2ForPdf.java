@@ -46,7 +46,8 @@ public class Jbig2ForPdf {
     /**
      * constructor that reads jbig2 images and global data and saves them in array of bytes
      * @param pathToDir represents path to directory containing images data and global data
-     * @throws pdfrecompression.PdfRecompressionException
+     * @param basename 
+     * @throws PdfRecompressionException 
      */
     public Jbig2ForPdf(String pathToDir, String basename) throws PdfRecompressionException {
         jbig2Images = new TreeMap<Integer, PdfImage>();
@@ -58,7 +59,7 @@ public class Jbig2ForPdf {
         File[] fileNames = directory.listFiles();
         for (int i = 0; i < fileNames.length; i++) {
             File checkFile = fileNames[i];
-            String fileName = checkFile.getName();
+            String fileName = checkFile.getPath();
             
             if (checkFile.isDirectory()) {
                 continue;
@@ -104,6 +105,7 @@ public class Jbig2ForPdf {
 
     /**
      * add pdf image
+     * @param key 
      * @param jbImage represents image encoding according to JBIG2 standard
      */
     public void addJbig2Image(int key, PdfImage jbImage) {
@@ -123,7 +125,7 @@ public class Jbig2ForPdf {
      * Sets informations about pdf image given in List.
      * This list of information has to have the same order as images in the list of pdf images and the same count
      * @param pdfImageInformations represents list of informations about pdf images
-     * @throws pdfrecompression.PdfRecompressionException if there is different number of informations and images
+     * @throws PdfRecompressionException  
      */
     public void setJbig2ImagesInfo(List<PdfImageInformation> pdfImageInformations) throws PdfRecompressionException {
         if (pdfImageInformations == null) {

@@ -23,6 +23,7 @@ package cz.muni.pdfjbim;
  * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class PdfRecompressionException extends Exception {
+    private static final long serialVersionUID = 1L;
 
     public PdfRecompressionException(String message) {
         super(message);
