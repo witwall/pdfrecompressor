@@ -54,7 +54,7 @@ public class Run {
         Set<Integer> pagesToProcess = null;
         Boolean silent = false;
         Boolean binarize = false;
-        String basename = "output";
+        String basename = System.getProperty("java.io.tmpdir") + "/output";
 
 
         // parsing arguments of main method
@@ -219,7 +219,14 @@ public class Run {
         List<PdfImageInformation> pdfImagesInfo = imageExtractor.getOriginalImageInformations();
 
         // reading output of encoder and associating with informations about them
-        Jbig2ForPdf pdfImages = new Jbig2ForPdf(".", basename);
+        int lastPathSeparator = basename.lastIndexOf(File.separator);
+        String basenameDir = ".";
+        if (lastPathSeparator != -1) {
+            basenameDir = basename.substring(0, lastPathSeparator);
+            basename = basename.substring(lastPathSeparator+1);
+        }
+        log.debug("basename dir = {} and basename = {}", basenameDir, basename);
+        Jbig2ForPdf pdfImages = new Jbig2ForPdf(basenameDir,basename);
         pdfImages.setJbig2ImagesInfo(pdfImagesInfo);
 
         // creating output
@@ -280,7 +287,7 @@ public class Run {
         System.err.println("Usage: -pathToEnc <Path to jbig2enc> -input <pdf file> [OPTIONAL]\n");
         System.err.println("Mandatory options:\n"
                 + "-pathToEnc <Path to jbig2enc>: path to trigger of jbig2enc (usually file named jbig2)\n"
-                + "-intput <pdf file>: pdf file that should be recompressed\n");
+                + "-input <pdf file>: pdf file that should be recompressed\n");
 
         System.err.println("OPTIONAL parameters:\n"
                 + "-output <outputPdf>: name of output pdf file (if not given used input pdf file\n"
@@ -290,7 +297,7 @@ public class Run {
                 + "-bw_thresh <value of BW thresholding>: sets value for bw thresholding to encoder (in jbig2enc it is switch -T)\n"
                 + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored) -- now it is not working\n"
                 + "-binarize: enables to process not bi-tonal images (normally only bi-tonal images are processed and other are skipped)\n"
-                + "-basename <basename> sets the basename for output files of jbig2enc"
+                + "-basename <basename> sets the basename for output files of jbig2enc\n"
                 + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }
