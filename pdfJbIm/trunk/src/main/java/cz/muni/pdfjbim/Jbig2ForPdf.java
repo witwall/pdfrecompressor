@@ -59,7 +59,7 @@ public class Jbig2ForPdf {
         File[] fileNames = directory.listFiles();
         for (int i = 0; i < fileNames.length; i++) {
             File checkFile = fileNames[i];
-            String fileName = checkFile.getPath();
+            String fileName = checkFile.getName();
             
             if (checkFile.isDirectory()) {
                 continue;
