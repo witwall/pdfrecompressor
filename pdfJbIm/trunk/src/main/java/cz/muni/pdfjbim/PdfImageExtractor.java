@@ -70,6 +70,7 @@ public class PdfImageExtractor {
     private List<String> namesOfImages = new ArrayList<String>();
     private List<PdfImageInformation> originalImageInformations = new ArrayList<PdfImageInformation>();
     private static final Logger log = LoggerFactory.getLogger(PdfImageExtractor.class);
+    private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     /**
      * @return names of images in a list
