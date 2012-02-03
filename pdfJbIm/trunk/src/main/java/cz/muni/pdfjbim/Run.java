@@ -54,6 +54,7 @@ public class Run {
         Set<Integer> pagesToProcess = null;
         Boolean silent = false;
         Boolean binarize = false;
+        boolean useOcr = false;
         String basename = System.getProperty("java.io.tmpdir") + "/output";
 
 
@@ -145,6 +146,11 @@ public class Run {
                 autoThresh = true;
                 continue;
             }
+            
+            if (args[i].equalsIgnoreCase("-useOcr")) {
+                useOcr = true;
+                continue;
+            }
 
             if (args[i].equalsIgnoreCase("-q")) {
                 silent = true;
@@ -210,6 +216,7 @@ public class Run {
             jbig2.setAutoThresh(autoThresh); // engages modified version of the jbig2 encoder
             jbig2.setBwThresh(bwThresh);
             jbig2.setDefaultThresh(defaultThresh);
+            jbig2.setUseOcr(useOcr);
 
             // engages jbig2enc with set parameters and creates output files based on basename
             jbig2.run(jbig2encInputImages, basename);
