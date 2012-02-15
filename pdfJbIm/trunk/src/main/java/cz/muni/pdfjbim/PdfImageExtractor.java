@@ -389,7 +389,10 @@ public class PdfImageExtractor {
                 }
             }
         } catch (IOException ex) {
+            Tools.deleteFilesFromList(namesOfImages);
             throw new PdfRecompressionException("Unable to parse PDF document", ex);
+        } catch (Exception ex) {
+            Tools.deleteFilesFromList(namesOfImages);
         } finally {
             if (doc != null) {
                 try {
@@ -548,7 +551,10 @@ public class PdfImageExtractor {
 
             }
         } catch (IOException ex) {
+            Tools.deleteFilesFromList(namesOfImages);
             throw new PdfRecompressionException("Unable to parse PDF document", ex);
+        } catch (Exception ex) {
+            Tools.deleteFilesFromList(namesOfImages);
         } finally {
             if (doc != null) {
                 try {

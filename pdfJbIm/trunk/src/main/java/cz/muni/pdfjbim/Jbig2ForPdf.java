@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * class representing list of images compressed according to JBIG2 standard
@@ -42,6 +44,7 @@ public class Jbig2ForPdf {
     private byte[] globalData;
     private SortedMap<Integer, PdfImage> jbig2Images;
     private List<File> jbFileNames = new ArrayList<File>();
+    private static final Logger log = LoggerFactory.getLogger(Jbig2ForPdf.class);
 
     /**
      * constructor that reads jbig2 images and global data and saves them in array of bytes
@@ -60,6 +63,7 @@ public class Jbig2ForPdf {
         for (int i = 0; i < fileNames.length; i++) {
             File checkFile = fileNames[i];
             String fileName = checkFile.getName();
+            log.debug("Checking file {} if it is an adequate JBIG2 file", checkFile.getPath());
             
             if (checkFile.isDirectory()) {
                 continue;
@@ -70,8 +74,9 @@ public class Jbig2ForPdf {
                     String suffix = fileName.substring(fileName.length() - 4);
                     try {
                         int suffixInt = Integer.parseInt(suffix);
-                        jbFileNames.add(checkFile);
-                        jbig2Images.put(suffixInt, new PdfImage(checkFile));
+                        log.debug("Recognized jbig2 image file: {}", checkFile);
+                        jbFileNames.add(checkFile);                        
+                        jbig2Images.put(suffixInt, new PdfImage(checkFile));                        
                     } catch (NumberFormatException ex) {
                         continue;
                     }
@@ -79,6 +84,7 @@ public class Jbig2ForPdf {
             }
             if (fileName.equals(basename + ".sym")) {
                 Long sizeOfFile = checkFile.length();
+                log.debug("Recognized global dictionary: {}", checkFile);
                 int imageSize = 0;
                 FileInputStream jbImageInput = null;
 
@@ -132,8 +138,9 @@ public class Jbig2ForPdf {
             throw new NullPointerException("pdfImageInformations");
         }
 
+        log.debug("Number of informations: {} vs number of images: {}", pdfImageInformations, jbig2Images);
         if (pdfImageInformations.size() != jbig2Images.size()) {
-            throw new PdfRecompressionException("there can't be difference in count of images and their informations");
+            throw new PdfRecompressionException("There can't be difference in count of images and their informations");
         }
 
         for (int i = 0; i < jbig2Images.size(); i++) {
