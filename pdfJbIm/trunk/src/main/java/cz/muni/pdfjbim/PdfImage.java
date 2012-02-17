@@ -14,7 +14,6 @@
  *  limitations under the License.
  *  under the License.
  */
-
 package cz.muni.pdfjbim;
 
 import java.io.DataInput;
@@ -23,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * class representing JBIG2 image in format suitable for pdf (without header,...)
@@ -30,11 +31,12 @@ import java.io.IOException;
  * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class PdfImage {
-
+    
     private int objectNumber;
     private int generationNumber;
     private PdfImageInformation pdfImageInformation;
     private File imageDataFile;
+    private static final Logger log = LoggerFactory.getLogger(PdfImage.class);
 
     /**
      * constructor sets pointer to file containing image data, pdfImageInformation will be set later
@@ -57,7 +59,6 @@ public class PdfImage {
         this.pdfImageInformation = pdfImageInformation;
     }
 
-
     /**
      * return byte array of image data
      * @return byte array with image data
@@ -68,13 +69,13 @@ public class PdfImage {
         Long sizeOfFile = imageDataFile.length();
         int imageSize = 0;
         FileInputStream jbImageInput = null;
-
+        log.debug("Getting image data from {}", imageDataFile);
         try {
             jbImageInput = new FileInputStream(imageDataFile);
             if (sizeOfFile > Integer.MAX_VALUE) {
                 throw new PdfRecompressionException("cannot process image greater than " + Integer.MAX_VALUE);
             }
-
+            
             DataInput inputData = new DataInputStream(jbImageInput);
             imageSize = sizeOfFile.intValue();
             byte[] imageBytes = new byte[imageSize];
@@ -122,5 +123,9 @@ public class PdfImage {
     public File getImageDataFile() {
         return imageDataFile;
     }
-    
+
+    @Override
+    public String toString() {
+        return "PdfImage{" + "objectNumber=" + objectNumber + ", generationNumber=" + generationNumber + ", pdfImageInformation=" + pdfImageInformation + ", imageDataFile=" + imageDataFile + '}';
+    }        
 }

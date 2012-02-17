@@ -64,7 +64,9 @@ public class MyImageRenderListener implements RenderListener {
             String filename;
             FileOutputStream os;
             PdfImageObject image = renderInfo.getImage();
-            if (image == null) return;
+            if (image == null) {
+                return;
+            }
             filename = String.format(path, renderInfo.getRef().getNumber(), image.getFileType());
             os = new FileOutputStream(filename);
             os.write(image.getImageAsBytes());
