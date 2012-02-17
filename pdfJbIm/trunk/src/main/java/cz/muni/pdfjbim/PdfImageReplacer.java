@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,6 @@ import org.slf4j.LoggerFactory;
 public class PdfImageReplacer {
 
     private static final Logger log = LoggerFactory.getLogger(PdfImageReplacer.class);
-
 
     /**
      * replace images by they recompressed version according to JBIG2 standard
@@ -90,6 +88,7 @@ public class PdfImageReplacer {
         Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
 
 
+        log.info("Replacing old images in PDF with their equivalent encoded according to standard JBIG2");
         PdfReader pdf;
         PdfStamper stp = null;
         try {
@@ -99,6 +98,7 @@ public class PdfImageReplacer {
 
             int version;
             if ((version = Integer.parseInt(String.valueOf(pdf.getPdfVersion()))) < 4) {
+                log.debug("PDF version of original PDF was {} => changing to PDF version 1.4", pdf.getPdfVersion());
                 writer.setPdfVersion(PdfWriter.PDF_VERSION_1_4);
             }
 
@@ -161,6 +161,8 @@ public class PdfImageReplacer {
                         if (jbImage == null) {
                             continue;
                         }
+                        
+                        log.debug("Replacing image {}", jbImage);
                         PdfImageInformation jbImageInfo = jbImage.getPdfImageInformation();
                         Image img = Image.getInstance(jbImageInfo.getWidth(), jbImageInfo.getHeight(), jbImage.getImageData(), imagesData.getGlobalData());
 
@@ -179,6 +181,8 @@ public class PdfImageReplacer {
         } catch (DocumentException dEx) {
             throw new PdfRecompressionException(dEx);
         } finally {
+            log.debug("Deleting temporary files created during process of PDF recompression");
+            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]));
             try {
                 if (stp != null) {
                     stp.close();
@@ -188,7 +192,6 @@ public class PdfImageReplacer {
             } catch (IOException ex) {
                 log.error("Exception thrown while closing stream", ex);
             }
-            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]));
         }
     }
 }

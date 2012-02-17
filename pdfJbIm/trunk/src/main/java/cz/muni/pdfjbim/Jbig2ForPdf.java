@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class Jbig2ForPdf {
     private SortedMap<Integer, PdfImage> jbig2Images;
     private List<File> jbFileNames = new ArrayList<File>();
     private static final Logger log = LoggerFactory.getLogger(Jbig2ForPdf.class);
-
+    
     /**
      * constructor that reads jbig2 images and global data and saves them in array of bytes
      * @param pathToDir represents path to directory containing images data and global data
@@ -58,19 +59,23 @@ public class Jbig2ForPdf {
         if (!directory.isDirectory()) {
             throw new PdfRecompressionException("argument pathToDir doesn`t contain path to directory");
         }
+        
+        FilenameFilter jbig2fileNameFilter = new Jbig2FilenameFilter(basename);
 
-        File[] fileNames = directory.listFiles();
+        File[] fileNames = directory.listFiles(jbig2fileNameFilter);
         for (int i = 0; i < fileNames.length; i++) {
             File checkFile = fileNames[i];
             String fileName = checkFile.getName();
-            log.debug("Checking file {} if it is an adequate JBIG2 file", checkFile.getPath());
+            log.trace("Checking file {} if it is an adequate JBIG2 file", checkFile.getPath());
             
             if (checkFile.isDirectory()) {
+                log.trace("{} is a dictionary, continuing with next file");
                 continue;
             }
 
-            if ((fileName.lastIndexOf(".") + 1) == (fileName.length() - 4)) {
-                if (fileName.startsWith(basename)) {
+            int filenameLengthWithoutSuffix = fileName.lastIndexOf(".");
+            if ((filenameLengthWithoutSuffix + 1) == (fileName.length() - 4)) {
+                if (fileName.substring(0, filenameLengthWithoutSuffix).equals(basename)) {
                     String suffix = fileName.substring(fileName.length() - 4);
                     try {
                         int suffixInt = Integer.parseInt(suffix);
@@ -78,6 +83,7 @@ public class Jbig2ForPdf {
                         jbFileNames.add(checkFile);                        
                         jbig2Images.put(suffixInt, new PdfImage(checkFile));                        
                     } catch (NumberFormatException ex) {
+                        log.warn("NumberFormatException encountered while checking suffix", ex);
                         continue;
                     }
                 }
@@ -92,7 +98,7 @@ public class Jbig2ForPdf {
                     jbImageInput = new FileInputStream(checkFile);                    
                     jbFileNames.add(checkFile);
                     if (sizeOfFile > Integer.MAX_VALUE) {
-                        throw new PdfRecompressionException("cannot process image greater than " + Integer.MAX_VALUE);
+                        throw new PdfRecompressionException("Cannot process image greater than " + Integer.MAX_VALUE);
                     }
 
                     DataInput inputData = new DataInputStream(jbImageInput);
@@ -192,6 +198,7 @@ public class Jbig2ForPdf {
      */
     public Map<PdfObjId, PdfImage> getMapOfJbig2Images() {
         Map<PdfObjId, PdfImage> pdfImages = new HashMap<PdfObjId, PdfImage>();
+        log.debug("Returning Jbig2 images associated with their PDF object ID");
         if (!jbig2Images.isEmpty()) {
             for (int i = 0; i <= jbig2Images.lastKey(); i++) {
                 PdfImage jb2Im = jbig2Images.get(i);

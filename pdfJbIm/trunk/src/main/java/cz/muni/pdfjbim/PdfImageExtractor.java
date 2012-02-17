@@ -193,6 +193,13 @@ public class PdfImageExtractor {
         }
     }
 
+    /**
+     * Extracts JBIG2Images from Input stream even if they are stored together with global dictionary in separate PDF object
+     * doesn't work yet, its in development stage
+     * @param is
+     * @throws PdfRecompressionException 
+     * @deprecated 
+     */
     public void extractJbig2Images(InputStream is) throws PdfRecompressionException {
         if (is == null) {
             throw new IllegalArgumentException("InputStream not given");
@@ -431,6 +438,7 @@ public class PdfImageExtractor {
         InputStream inputStream = null;
         if (password != null) {
             try {
+                log.debug("PDF probably encrypted, trying to decrypt using given password {}", password);
                 ByteArrayOutputStream decryptedOutputStream = null;
                 PdfReader reader = new PdfReader(pdfFile, password.getBytes());
                 PdfStamper stamper = new PdfStamper(reader, decryptedOutputStream);

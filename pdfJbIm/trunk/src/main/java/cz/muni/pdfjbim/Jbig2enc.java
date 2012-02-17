@@ -35,7 +35,7 @@ public class Jbig2enc {
     private double defaultThresh = 0.85;
     private boolean autoThresh = false;
     private int bwThresh = 188;
-    private static final Logger logger = LoggerFactory.getLogger(Jbig2enc.class);
+    private static final Logger log = LoggerFactory.getLogger(Jbig2enc.class);
     private boolean useOcr = false;
 
     public Jbig2enc(String jbig2enc) {
@@ -116,7 +116,7 @@ public class Jbig2enc {
         }
 
         if (imageList.isEmpty()) {
-            logger.info("there are no images for running jbig2enc at (given list is empty)");
+            log.info("there are no images for running jbig2enc at (given list is empty)");
             return;
         }
 
@@ -150,6 +150,7 @@ public class Jbig2enc {
         Runtime runtime = Runtime.getRuntime();
         Process pr1;
         try {
+            log.debug("Executing {}", toRun);
             pr1 = runtime.exec(run);
             InputStream erStream = pr1.getErrorStream();
             int exitValue = pr1.waitFor();
@@ -172,17 +173,17 @@ public class Jbig2enc {
 //                }
 
 
-                logger.debug(line);
+                log.debug(line);
             }
             if (exitValue != 0) {
-                logger.warn("jbig2enc ended with error " + exitValue);
+                log.warn("jbig2enc ended with error " + exitValue);
                 Tools.deleteFilesFromList(imageList);
                 throw new PdfRecompressionException("jbig2enc ended with error " + exitValue);
             }
         } catch (IOException ex) {
-            logger.warn("running jbig2enc caused IOException", ex);
+            log.warn("running jbig2enc caused IOException", ex);
         } catch (InterruptedException ex2) {
-            logger.warn("running jbig2enc was interupted", ex2);
+            log.warn("running jbig2enc was interupted", ex2);
         } finally {
             Tools.deleteFilesFromList(imageList);
         }
