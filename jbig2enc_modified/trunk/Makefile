@@ -14,7 +14,7 @@ CFLAGS=-I${LEPTONICA}/src -Wall -I/usr/include -I/usr/local/include -I/usr/local
 
 
 jbig2: libjbig2enc.a jbig2.cc
-	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc -lpng -ljpeg -ltiff -lgif -lm ${LEPTONICA}/src/.libs/liblept.a -ltesseract $(CFLAGS)  
+	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc -lpng -ljpeg -ltiff -lgif -lm -lz -lwebp ${LEPTONICA}/src/.libs/liblept.a -ltesseract $(CFLAGS)  
 	#$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc -lpng -ljpeg -ltiff -lgif -lm ${LEPTONICA}/src/.libs/liblept.a ${TESSERACT_LIBS} $(CFLAGS)  
 	#$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/.libs/liblept.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm 
 
