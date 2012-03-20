@@ -54,6 +54,8 @@ usage(const char *argv0) {
   fprintf(stderr, "  -j --jpeg-output: write images from mixed input as JPEG\n");
   fprintf(stderr, "  -autoThresh: engage using autoThresholding for symbol coder\n");
   fprintf(stderr, "  -useOcr: engages using autoThresholding with usage of OCR engine (actually tesseract used) -- not fully implemented yet; requires option autoThresh enabled\n");
+  fprintf(stderr, "  -nohash: only for debugging purposes to allow easily compare performance with older version\n");
+  fprintf(stderr, "  -lang <lang>: used by -useOcr; allows to set language in format which uses OCR engine (it should be given in appropriate format (def: eng)\n");
   fprintf(stderr, "  -v: be verbose\n");
 }
 
@@ -230,6 +232,7 @@ main(int argc, char **argv) {
   bool autoThresh = false;
   bool hash = true;
   bool useOcr = false;
+  char * lang = "eng";
 
   for (i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "-h") == 0 ||
@@ -348,6 +351,14 @@ main(int argc, char **argv) {
 
     if (strcmp(argv[i], "-useOcr") == 0) {
       useOcr = true;
+      continue;
+    }
+
+    if (strcmp(argv[i], "-lang") == 0) {
+      i++;
+      if (i < argc) {
+        lang = argv[i];
+      }
       continue;
     }
 
@@ -512,7 +523,7 @@ main(int argc, char **argv) {
 		if (threshold > 0.86) {
 	 	  autoThresholdUsingHash(ctx);
 		}
-        autoThresholdUsingHashAndOCR(ctx);
+        autoThresholdUsingHashAndOCR(ctx, lang);
       } else {
         fprintf(stderr, "Quality of input image is not good enough for OCR (%d < 200 dpi) => running without OCR)", dpiResolution);
         autoThresholdUsingHash(ctx);
