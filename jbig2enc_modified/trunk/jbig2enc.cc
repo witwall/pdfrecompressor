@@ -438,7 +438,6 @@ void autoThreshUsingOCR(struct jbig2ctx *ctx) {
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
 	PIX *jbPix = jbPixa->pix[i];
 
-
 	OcrResult * ocrResult;
 	//ocrResult = recognizeLetter(jbPix);
 
@@ -486,10 +485,24 @@ void autoThreshold(struct jbig2ctx *ctx) {
     fprintf(stderr, "jbig2ctx not given");
     return;
   }
+//   fprintf(stderr, "autoThreshold used\n");
   PIXA *jbPixa = ctx->classer->pixat;
+//   BOXA * boxa = ctx->classer->pixatd->boxa; 
+//   BOX * box = NULL;
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
     PIX *jbPix = jbPixa->pix[i];
-
+/*
+    box = NULL;  
+    jbGetULCorners(ctx->classer, jbPix, boxa);
+    l_int32 nbox = boxaGetCount(boxa);                                                                                   
+    fprintf(stderr, "boxas %d, pixs w = %d, pix h = %d\n", nbox, jbPix->w, jbPix->h);
+    if (i < nbox) {                                                                                                  
+      box = boxa->box[i];                                                                                            
+     
+      fprintf(stderr, "x = %d, y = %d, h = %d, w = %d, refcount = %d\n", box->x, box->y, box->h, box->w, box->refcount);
+    }
+  
+*/
     for (int j = i+1; j < pixaGetCount(jbPixa); j++) {
       if (areEquivalent(jbPix, jbPixa->pix[j])) {
         uniteTemplatesWithIndexes(ctx, i, j);
@@ -554,14 +567,14 @@ void countHash(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, int 
 }
 
 void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, std::list<int> > &hashMap, 
-					std::map<l_uint32, OcrResult*> &ocrResults) {
+					std::map<l_uint32, OcrResult*> &ocrResults, char * lang) {
   if (!jbPixa) {
     fprintf(stderr, "no PIXA given\n");
     return;
   }
 
   // initialize ocrEngine
-  TesseractOcr * ocr = new TesseractOcr("eng");
+  TesseractOcr * ocr = new TesseractOcr(lang);
   ocr->init();
   
   // counting hashes with ocrResults
@@ -649,7 +662,7 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
  *  if they are the same it calls method that makes from them only one template
  *  and all indexes from second template are reindexed to the first one
  */
-void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx) {
+void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
   if (!ctx) {
     fprintf(stderr, "jbig2ctx not given\n");
     return;
@@ -664,7 +677,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx) {
     //countHashWithOCR(jbPixa->pix[i], hashedTemplates, i, ocrResults);
   //}
 
-  countHashWithOCR(jbPixa, hashedTemplates, ocrResults);
+  countHashWithOCR(jbPixa, hashedTemplates, ocrResults, lang);
   map<unsigned int, list<int> > newRepresentants; // where int is chosenOne and vector<int> are old ones which should be replaced by chosenOne (united with it)
   // going through representants with the same hash
   std::map<unsigned int, list<int> >::iterator it;
