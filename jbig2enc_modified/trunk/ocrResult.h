@@ -79,5 +79,9 @@ class OcrResult {
 
     void setRecognizedTextWithMeanConfidence(char * chars, int meanConfidence);
 
+    float getDistance(OcrResult * ocrResults);
+
+    float getPixDistance(PIX * pix);
+
 };
 #endif

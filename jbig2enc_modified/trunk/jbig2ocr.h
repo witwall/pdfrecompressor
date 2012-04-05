@@ -56,6 +56,7 @@ class TesseractOcr : public OcrEngine {
     void init();
 
     OcrResult * recognizeLetter(PIX * pix);
+    void recognizeLetterDetailInfo(PIX * pix);
 };
 
 #endif

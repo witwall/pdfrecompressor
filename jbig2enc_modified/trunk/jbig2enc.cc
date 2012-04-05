@@ -26,6 +26,8 @@
 #include <allheaders.h>
 #include <pix.h>
 
+#include <iostream>
+
 
 #include <math.h>
 #if defined(sun)
@@ -566,7 +568,7 @@ void countHash(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, int 
   }  
 }
 
-void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, std::list<int> > &hashMap, 
+void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, map<unsigned int, std::list<int> > > &hashMap, 
 					std::map<l_uint32, OcrResult*> &ocrResults, char * lang) {
   if (!jbPixa) {
     fprintf(stderr, "no PIXA given\n");
@@ -587,24 +589,43 @@ void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, std::list<int> > &ha
     l_int32 holes;
     pixCountConnComp(pix, 4, &holes);
     OcrResult * ocrResult = ocr->recognizeLetter(pix);
+
+    // put here just for testing purposes
+//    ocr->recognizeLetterDetailInfo(pix);
+
     ocrResults.insert(pair<l_uint32, OcrResult*>(i, ocrResult));
     unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
 
-    //fprintf(stderr, "holes: %d, h: %d, w: %d, ascii: %d\n",holes, h, w, asciiSum);
-    unsigned int hash = (holes + 10 * h + 10000 * w + 1000000 * asciiSum) % 1000000000;
+    unsigned int hash = (h * w);
+//    fprintf(stderr, "hash: %d, holes: %d, h: %d, w: %d, ascii: %d\n", hash, holes, h, w, asciiSum);
 
-    map<unsigned int, list<int> >::iterator it;
-    it = hashMap.find(hash);
 
-    if (it == hashMap.end()) { // creating new bin
-      it = hashMap.begin();
+    map<unsigned int, map<unsigned int, std::list<int> > >::iterator asciiSumIt;
+    asciiSumIt = hashMap.find(asciiSum);
+    if (asciiSumIt == hashMap.end()) { // creating new bin for same text hash
+      asciiSumIt = hashMap.begin();
+      map<unsigned int, std::list<int> > representantsHashMap;
       list<int> representants;
       representants.push_back(i);
-      hashMap.insert(pair<unsigned int, list<int> >(hash, representants));
-    } else { // add to existing bin
-      it->second.push_back(i); 
+      representantsHashMap.insert(pair<unsigned int, list<int> >(hash, representants));
+      hashMap.insert(pair<unsigned int, map<unsigned int, list<int> > >(asciiSum, representantsHashMap));
+//       fprintf(stderr, "Creating new bin for new character %d creating %d. bucket\n", asciiSum, hashMap.size());
+    } else {
+      std::map<unsigned int, std::list<int> > representantsHashMap = asciiSumIt->second;
+      std::map<unsigned int, list<int> >::iterator it;
+      it = asciiSumIt->second.find(hash);
+      if (it == asciiSumIt->second.end()) {
+        it = representantsHashMap.begin();
+        list<int> representants;
+        representants.push_back(i);
+        asciiSumIt->second.insert(pair<unsigned int, list<int> >(hash, representants));
+//         fprintf(stderr, "Adding new hash %d for character %d with bucket size %d\n", hash, asciiSum, asciiSumIt->second.size());
+      } else {
+        it->second.push_back(i);
+//         fprintf(stderr, "Adding new template %d to hash %d and character %d with bucket size %d\n", i, hash, asciiSum, asciiSumIt->second.find(hash)->second.size());
+      }
     }
-  }
+  }  
 }
 
 void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, l_uint32 templateIdx, 
@@ -633,7 +654,7 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
 
 
 
-//    ocrResult = recognizeLetter(pix);
+//  ocrResult = recognizeLetter(pix);
 
 
 
@@ -668,7 +689,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
     return;
   }
 
-  std::map<unsigned int, std::list<int> > hashedTemplates;
+  std::map<unsigned int, std::map<unsigned int, std::list<int> > > hashedTemplates;
   std::map<unsigned int, OcrResult*> ocrResults;
 
   // creating hash value for each representant
@@ -678,55 +699,75 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
   //}
 
   countHashWithOCR(jbPixa, hashedTemplates, ocrResults, lang);
+
   map<unsigned int, list<int> > newRepresentants; // where int is chosenOne and vector<int> are old ones which should be replaced by chosenOne (united with it)
+
+  // iterator over different recognized characters
+  std::map<unsigned int, map<unsigned int, list<int> > >::iterator itAsciiValues;
+
   // going through representants with the same hash
   std::map<unsigned int, list<int> >::iterator it;
   std::list<int>::iterator itFirstTemplate;
   std::list<int>::iterator itSecondTemplate;
-  for (it = hashedTemplates.begin(); it != hashedTemplates.end(); it++) {
 
-		  //fprintf(stderr, "templates with hash = %d:\n", it->first);
-    //comparing all the templates with same hash
-    for (itFirstTemplate = it->second.begin(); itFirstTemplate != it->second.end();) {
-      list<int> templates;
-      templates.clear();
-      itSecondTemplate = itFirstTemplate;
-      OcrResult *ocrResultFirst = ocrResults.find(*itFirstTemplate)->second;
-	  //fprintf(stderr, "Comparing to:\n");
-	  //fprintf(stderr, "Recognized text: %s", ocrResultFirst->getRecognizedText());
-	  //fprintf(stderr, "Confidence %i\n", ocrResultFirst->getConfidence());
-	  //printPix(pixScaleByIntSubsampling(ocrResultFirst->getPix(),3));
+  for (itAsciiValues = hashedTemplates.begin(); itAsciiValues != hashedTemplates.end(); itAsciiValues++) {
+    std::map<unsigned int, list<int> > hashedRepresentants = itAsciiValues->second;
+
+    // going through representants with same character (text) recognized
+    for (it = hashedRepresentants.begin(); it != hashedRepresentants.end(); it++) {
+
+      //fprintf(stderr, "templates with hash = %d:\n", it->first);
+      //comparing all the templates with same hash
+      for (itFirstTemplate = it->second.begin(); itFirstTemplate != it->second.end(); itFirstTemplate++) {
+//         fprintf(stderr, "Processing template %d with hash value %d and ascii value %d\n", (*itFirstTemplate), it->first, itAsciiValues->first);
+        list<int> templates;
+        templates.clear();
+        OcrResult *ocrResultFirst = ocrResults.find(*itFirstTemplate)->second;
+        //fprintf(stderr, "Comparing to:\n");
+        //fprintf(stderr, "Recognized text: %s", ocrResultFirst->getRecognizedText());
+        //fprintf(stderr, "Confidence %i\n", ocrResultFirst->getConfidence());
+        //printPix(pixScaleByIntSubsampling(ocrResultFirst->getPix(),3));
       
-      if (ocrResultFirst->getConfidence() < 85) {
-        itFirstTemplate++;
-        continue;
-      }
-
-	  //fprintf(stderr, "firstTemplateIt: %d\n", (*itFirstTemplate));
-      for (++itSecondTemplate; itSecondTemplate != it->second.end();) {
-		OcrResult *ocrResultSecond = ocrResults.find(*itSecondTemplate)->second;
-		//fprintf(stderr, "recognized text: %s", ocrResultSecond->getRecognizedText());
-		//fprintf(stderr, "confidence %i\n", ocrResultSecond->getConfidence());
-		//printPix(pixScaleByIntSubsampling(ocrResultSecond->getPix(),3));
-		//fprintf(stderr, "\n");
-        if (ocrResultSecond->getConfidence() < 85) {
-          itSecondTemplate++;
+        if (ocrResultFirst->getConfidence() < 60) {
+ //         itFirstTemplate++;
           continue;
         }
+
+        char * recogText = ocrResultFirst->getRecognizedText();
+//      fprintf(stderr, "\ntext %s with confidence %d: ", recogText, ocrResultFirst->getConfidence());
+//      std::cerr << "\ntext " << recogText << " with confidence " << ocrResultFirst->getConfidence() << ": ";
+
+        itSecondTemplate = itFirstTemplate;
+        //fprintf(stderr, "firstTemplateIt: %d\n", (*itFirstTemplate));
+        for (++itSecondTemplate; itSecondTemplate != it->second.end();) {
+//           fprintf(stderr, "Processing template %d with hash value %d and ascii value %d\n", (*itSecondTemplate), it->first, itAsciiValues->first);
+	  	  OcrResult *ocrResultSecond = ocrResults.find(*itSecondTemplate)->second;
+          //fprintf(stderr, "recognized text: %s", ocrResultSecond->getRecognizedText());
+          //fprintf(stderr, "confidence %i\n", ocrResultSecond->getConfidence());
+          //printPix(pixScaleByIntSubsampling(ocrResultSecond->getPix(),3));
+          //fprintf(stderr, "\n");
+          if (ocrResultSecond->getConfidence() < 85) {
+            itSecondTemplate++;
+            continue;
+          }
+          float distance = ocrResultFirst->getDistance(ocrResultSecond);
+          fprintf(stderr, "%f; ", distance);
+          if (distance < 0.3) {
    
-        if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) 
-			&& (strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {
-	      // unite templates without removing (just reindexing) but add to array for later remove
-          templates.push_back((*itSecondTemplate));
-          itSecondTemplate = (it->second.erase(itSecondTemplate));          
-        } else {
-          itSecondTemplate++;
+            //if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) && 
+            //(strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {
+            // unite templates without removing (just reindexing) but add to array for later remove
+            templates.push_back((*itSecondTemplate));
+            itSecondTemplate = (it->second.erase(itSecondTemplate));          
+          } else {
+            itSecondTemplate++;
+          }
         }
+        if (!templates.empty()) {
+          newRepresentants.insert(pair<unsigned int, list<int> >((*itFirstTemplate), templates));
+        }
+       // itFirstTemplate++;
       }
-      if (!templates.empty()) {
-        newRepresentants.insert(pair<unsigned int, list<int> >((*itFirstTemplate), templates));
-      }
-      itFirstTemplate++;
     }
   }
 
