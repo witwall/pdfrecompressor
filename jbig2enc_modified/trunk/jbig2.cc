@@ -232,7 +232,7 @@ main(int argc, char **argv) {
   bool autoThresh = false;
   bool hash = true;
   bool useOcr = false;
-  char * lang = "eng";
+  char *lang = "eng";
 
   for (i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "-h") == 0 ||

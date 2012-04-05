@@ -1,4 +1,6 @@
 #include "ocrResult.h"
+#include <cmath>
+#include <string.h>
 
 using namespace std;
 
@@ -28,4 +30,63 @@ void OcrResult::setCharsWithConfidences(char *chars, int *confidences) {
 void OcrResult::setRecognizedTextWithMeanConfidence(char * chars, int meanConfidence) {
   this->recognizedText = chars;
   this->meanConfidence = meanConfidence;
+}
+
+/**
+ * counts distance between PIX int this OcrResult and another PIX
+ * takes into account sizes of PIX
+ */
+float OcrResult::getPixDistance(PIX * otherPix) {
+  float distance = 0.0;
+  PIX *thisPix = this->pix;
+  distance += fabs(thisPix->w - otherPix->w);
+  distance += fabs(thisPix->h - otherPix->h);
+
+  distance *= 0.8;
+
+  PIX * pixd;
+  pixd = pixXor(NULL, thisPix, otherPix);
+
+  l_int32 init = 0;
+  l_int32 *thisCount = &init;
+  l_int32 *diffCount = &init;
+
+  // counting number of ON pixels in thisPix
+  if (pixCountPixels(thisPix, thisCount, NULL)) {
+    fprintf(stderr, "Unable to count pixels\n");
+    pixDestroy(&pixd);
+    return 0;
+  }
+
+  // counting number of ON pixels in thisPix
+  if (pixCountPixels(pixd, diffCount, NULL)) {
+    fprintf(stderr, "Unable to count pixels\n");
+    pixDestroy(&pixd);
+    return 0;
+  }
+
+  distance += (((*diffCount)/(*thisCount))/100)/3.0;
+
+  return distance;
+}
+
+/**
+ * counts distance of two ocr results (it should be checked before, that we compare only ocr results
+ * with same lettersRecognized
+ */
+float OcrResult::getDistance(OcrResult * ocrResult) {
+  float distance = 0.0;
+  distance += strcmp(this->getRecognizedText(),ocrResult->getRecognizedText());
+  distance += (getPixDistance(ocrResult->pix)*0.5);
+  float confDiff = fabs(this->getConfidence()-ocrResult->getConfidence());
+
+  float uncertainity = 0.0;
+  if (this->getConfidence() > ocrResult->getConfidence()) {
+    uncertainity = 100 - this->getConfidence();
+  } else {
+    uncertainity = 100 - ocrResult->getConfidence();
+  }
+  distance += (((confDiff/3.0)+1) * (uncertainity + 1)/50.0);
+
+  return distance;
 }

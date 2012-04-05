@@ -29,6 +29,7 @@
 
 // from tesseract
 #include <baseapi.h>
+#include <ocrclass.h>
 using namespace tesseract;
 
 #include <math.h>
@@ -67,5 +68,13 @@ OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
   result->setCharsWithConfidences(recognizedText, confidences);
   result->setRecognizedTextWithMeanConfidence(recognizedText, confidence);
   return result;
+}
+
+void TesseractOcr::recognizeLetterDetailInfo(PIX * pix) {
+  api.SetImage(pix);
+  ETEXT_DESC * tessOcrResult = new ETEXT_DESC();
+  api.Recognize(tessOcrResult);
+  EANYCODE_CHAR * charResult = tessOcrResult->text;
+  fprintf(stderr, "Recognized char %d; Confidence %d\n", charResult->char_code, charResult->confidence);
 }
 
