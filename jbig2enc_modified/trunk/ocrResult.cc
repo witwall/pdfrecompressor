@@ -42,7 +42,7 @@ float OcrResult::getPixDistance(PIX * otherPix) {
   distance += fabs(thisPix->w - otherPix->w);
   distance += fabs(thisPix->h - otherPix->h);
 
-  distance *= 0.8;
+  distance *= 0.1;
 
   PIX * pixd;
   pixd = pixXor(NULL, thisPix, otherPix);
@@ -65,7 +65,7 @@ float OcrResult::getPixDistance(PIX * otherPix) {
     return 0;
   }
 
-  distance += (((*diffCount)/(*thisCount))/100)/3.0;
+  distance += ((*diffCount)/(thisPix->w * thisPix->h))/100.0;
 
   return distance;
 }
@@ -77,16 +77,17 @@ float OcrResult::getPixDistance(PIX * otherPix) {
 float OcrResult::getDistance(OcrResult * ocrResult) {
   float distance = 0.0;
   distance += strcmp(this->getRecognizedText(),ocrResult->getRecognizedText());
-  distance += (getPixDistance(ocrResult->pix)*0.5);
+  distance += (getPixDistance(ocrResult->pix)*0.7);
   float confDiff = fabs(this->getConfidence()-ocrResult->getConfidence());
 
   float uncertainity = 0.0;
   if (this->getConfidence() > ocrResult->getConfidence()) {
-    uncertainity = 100 - this->getConfidence();
-  } else {
     uncertainity = 100 - ocrResult->getConfidence();
+  } else {
+    uncertainity = 100 - this->getConfidence();
   }
-  distance += (((confDiff/3.0)+1) * (uncertainity + 1)/50.0);
+  distance += (((confDiff/3.0)+1) * (uncertainity + 1))*0.3;
+  distance *= (uncertainity/100);
 
   return distance;
 }
