@@ -742,7 +742,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
         //fprintf(stderr, "Confidence %i\n", ocrResultFirst->getConfidence());
         //printPix(pixScaleByIntSubsampling(ocrResultFirst->getPix(),3));
       
-        if (ocrResultFirst->getConfidence() < 60) {
+        if (ocrResultFirst->getConfidence() < 80) {
           itFirstTemplate++;
           continue;
         }
@@ -764,7 +764,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
           //fprintf(stderr, "confidence %i\n", ocrResultSecond->getConfidence());
           //printPix(pixScaleByIntSubsampling(ocrResultSecond->getPix(),3));
           //fprintf(stderr, "\n");
-          if (ocrResultSecond->getConfidence() < 85) {
+          if (ocrResultSecond->getConfidence() < 80) {
             itSecondTemplate++;
             continue;
           }
