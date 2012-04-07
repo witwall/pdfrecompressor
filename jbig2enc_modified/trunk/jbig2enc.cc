@@ -710,10 +710,6 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
 
   // creating hash value for each representant
   PIXA *jbPixa = ctx->classer->pixat; 
-  //for (int i = 0; i < pixaGetCount(jbPixa); i++) {
-    //countHashWithOCR(jbPixa->pix[i], hashedTemplates, i, ocrResults);
-  //}
-
   countHashWithOCR(jbPixa, hashedTemplates, ocrResults, lang);
   printHashTree(hashedTemplates);
 
@@ -726,6 +722,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
   std::map<unsigned int, list<int> >::iterator it;
   std::list<int>::iterator itFirstTemplate;
   std::list<int>::iterator itSecondTemplate;
+  std::list<int>::iterator itLastFirstTemplate;
 
   for (itAsciiValues = hashedTemplates.begin(); itAsciiValues != hashedTemplates.end(); itAsciiValues++) {
     std::map<unsigned int, list<int> > hashedRepresentants = itAsciiValues->second;
@@ -738,8 +735,6 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
       for (itFirstTemplate = it->second.begin(); itFirstTemplate != it->second.end();) {
 //         fprintf(stderr, "Processing template %d with hash value %d and ascii value %d\n", (*itFirstTemplate), it->first, itAsciiValues->first);
         list<int> templates;
-        list<int> templatesUnified;
-        templatesUnified.clear();
         templates.clear();
         OcrResult *ocrResultFirst = ocrResults.find(*itFirstTemplate)->second;
         //fprintf(stderr, "Comparing to:\n");
@@ -760,6 +755,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
 //      std::cerr << "\ntext " << recogText << " with confidence " << ocrResultFirst->getConfidence() << ": ";
 
         itSecondTemplate = itFirstTemplate;
+        itLastFirstTemplate = itFirstTemplate;
         //fprintf(stderr, "firstTemplateIt: %d\n", (*itFirstTemplate));
         for (++itSecondTemplate; itSecondTemplate != it->second.end();) {
 //           fprintf(stderr, "Processing template %d with hash value %d and ascii value %d\n", (*itSecondTemplate), it->first, itAsciiValues->first);
@@ -773,7 +769,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
             continue;
           }
           float distance = ocrResultFirst->getDistance(ocrResultSecond);
-          fprintf(stderr, "distance of %d to %d is %f (confidences: first %d, second %d)\n", (*itFirstTemplate), (*itSecondTemplate), 
+          fprintf(stderr, "distance of %d to %d is %f (confidences: first %d, second %d)\n", (*itLastFirstTemplate), (*itSecondTemplate), 
                                 distance, ocrResultFirst->getConfidence(), ocrResultSecond->getConfidence());
           
           if (distance < 0.3) {
@@ -792,7 +788,6 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
                 itFirstTemplate++;
               }
               it->second.erase(itBestTemplate);
-//               templatesUnified.push_back((*itBestTemplate));
               itBestTemplate = itSecondTemplate;
               itSecondTemplate++;
                             
@@ -810,21 +805,6 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
           if (itFirstTemplate == itBestTemplate) {
             itFirstTemplate++;
           }
-/*
-          list<int>::iterator itRemove;
-          bool itFirstTemplateIncreased = false;
-          for (itRemove = templates.begin(); itRemove != templates.end(); itRemove++) {
-            if ((*itRemove) == (*itFirstTemplate)) {
-              itFirstTemplate++;
-              itFirstTemplateIncreased = true;
-            }            
-            it->second.remove((*itRemove));
-            if (!itFirstTemplateIncreased) {
-              itFirstTemplate++;
-            }
-*/
-//           }
-
         } else {
           itFirstTemplate++;
         }
