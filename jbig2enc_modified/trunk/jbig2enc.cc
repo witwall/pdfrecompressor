@@ -678,6 +678,22 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
   }  
 }
 
+void printHashTree(std::map<unsigned int, std::map<unsigned int, std::list<int> > > hashTree) {
+  std::map<unsigned int, std::map<unsigned int, std::list<int> > >::iterator it;
+  std::map<unsigned int, std::list<int> >::iterator it2;
+  std::list<int>::iterator it3;
+  for (it = hashTree.begin(); it != hashTree.end(); it++) {
+    fprintf(stderr, "%d: ", it->first);
+    for (it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+      fprintf(stderr, "\t%d: ", it2->first);
+      for (it3 = it2->second.begin(); it3 != it2->second.end(); it3++) {
+        fprintf(stderr, "%d; ", (*it3));
+      }
+      fprintf(stderr, "\n");
+    }
+  }
+}
+
 
 /** checks all PIXes in pixat (pixa of templates) if they are the same
  *  if they are the same it calls method that makes from them only one template
@@ -699,6 +715,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
   //}
 
   countHashWithOCR(jbPixa, hashedTemplates, ocrResults, lang);
+  printHashTree(hashedTemplates);
 
   map<unsigned int, list<int> > newRepresentants; // where int is chosenOne and vector<int> are old ones which should be replaced by chosenOne (united with it)
 
@@ -718,9 +735,11 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
 
       //fprintf(stderr, "templates with hash = %d:\n", it->first);
       //comparing all the templates with same hash
-      for (itFirstTemplate = it->second.begin(); itFirstTemplate != it->second.end(); itFirstTemplate++) {
+      for (itFirstTemplate = it->second.begin(); itFirstTemplate != it->second.end();) {
 //         fprintf(stderr, "Processing template %d with hash value %d and ascii value %d\n", (*itFirstTemplate), it->first, itAsciiValues->first);
         list<int> templates;
+        list<int> templatesUnified;
+        templatesUnified.clear();
         templates.clear();
         OcrResult *ocrResultFirst = ocrResults.find(*itFirstTemplate)->second;
         //fprintf(stderr, "Comparing to:\n");
@@ -729,9 +748,12 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
         //printPix(pixScaleByIntSubsampling(ocrResultFirst->getPix(),3));
       
         if (ocrResultFirst->getConfidence() < 60) {
- //         itFirstTemplate++;
+          itFirstTemplate++;
           continue;
         }
+
+        int bestConfidence = ocrResultFirst->getConfidence();
+        std::list<int>::iterator itBestTemplate = itFirstTemplate;
 
         char * recogText = ocrResultFirst->getRecognizedText();
 //      fprintf(stderr, "\ntext %s with confidence %d: ", recogText, ocrResultFirst->getConfidence());
@@ -751,22 +773,61 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
             continue;
           }
           float distance = ocrResultFirst->getDistance(ocrResultSecond);
-          fprintf(stderr, "%f; ", distance);
+          fprintf(stderr, "distance of %d to %d is %f (confidences: first %d, second %d)\n", (*itFirstTemplate), (*itSecondTemplate), 
+                                distance, ocrResultFirst->getConfidence(), ocrResultSecond->getConfidence());
+          
           if (distance < 0.3) {
    
             //if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) && 
             //(strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {
             // unite templates without removing (just reindexing) but add to array for later remove
-            templates.push_back((*itSecondTemplate));
-            itSecondTemplate = (it->second.erase(itSecondTemplate));          
+            
+            // checks if this wouldn't be a better template to be used as representant based on OCR engine character 
+            // recognition confidence
+            if (ocrResultSecond->getConfidence() > bestConfidence) {
+              bestConfidence = ocrResultSecond->getConfidence();
+              templates.push_back((*itBestTemplate));
+              if (itBestTemplate == itFirstTemplate) {
+//                 fprintf(stderr, "\nfirstTemplate incremented thx bestTemplate is not first one\n");
+                itFirstTemplate++;
+              }
+              it->second.erase(itBestTemplate);
+//               templatesUnified.push_back((*itBestTemplate));
+              itBestTemplate = itSecondTemplate;
+              itSecondTemplate++;
+                            
+            } else {
+              templates.push_back((*itSecondTemplate));
+              itSecondTemplate = (it->second.erase(itSecondTemplate)); 
+            }
+            
           } else {
             itSecondTemplate++;
           }
         }
         if (!templates.empty()) {
-          newRepresentants.insert(pair<unsigned int, list<int> >((*itFirstTemplate), templates));
+          newRepresentants.insert(pair<unsigned int, list<int> >((*itBestTemplate), templates));
+          if (itFirstTemplate == itBestTemplate) {
+            itFirstTemplate++;
+          }
+/*
+          list<int>::iterator itRemove;
+          bool itFirstTemplateIncreased = false;
+          for (itRemove = templates.begin(); itRemove != templates.end(); itRemove++) {
+            if ((*itRemove) == (*itFirstTemplate)) {
+              itFirstTemplate++;
+              itFirstTemplateIncreased = true;
+            }            
+            it->second.remove((*itRemove));
+            if (!itFirstTemplateIncreased) {
+              itFirstTemplate++;
+            }
+*/
+//           }
+
+        } else {
+          itFirstTemplate++;
         }
-       // itFirstTemplate++;
       }
     }
   }
