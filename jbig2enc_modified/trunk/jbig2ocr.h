@@ -25,15 +25,21 @@
 class OcrEngine {
   protected:
     const char * lang;
+    int sourceResolution;
 
     public:
 		
 	  /*
-       * initializes language for OCR 
+       * initializes language for OCR and sourceResolution in ppi
 	   */
-	  OcrEngine(const char * lang) {
+	  OcrEngine(const char * lang, int sourceResolution) {
 	    this->lang = lang;
+        this->sourceResolution = sourceResolution;
 	  }
+
+      void setResolution(int ppi) {
+        this->sourceResolution = ppi;
+      }
 
       virtual ~OcrEngine() {};
 
@@ -47,7 +53,8 @@ class TesseractOcr : public OcrEngine {
 	tesseract::TessBaseAPI api;
 
   public:
-	TesseractOcr(const char * lang) : OcrEngine(lang) { }
+	TesseractOcr(const char * lang) : OcrEngine(lang,0) { }
+    TesseractOcr(const char * lang, int sourceResolution) : OcrEngine(lang, sourceResolution) {}
 
     ~TesseractOcr() {
       api.End();

@@ -50,10 +50,11 @@ using namespace tesseract;
  *  Initialization of tesseract api
  */
 void TesseractOcr::init() {
-  this->api.Init("tesseract", lang);
+  this->api.Init("tesseract_data", lang);
   tesseract::PageSegMode pagesegmode = static_cast<tesseract::PageSegMode>(10);
   this->api.SetPageSegMode(pagesegmode);
 }
+
 
 /* 
  *  box contains info about position and size of PIX
@@ -61,12 +62,37 @@ void TesseractOcr::init() {
 //OcrResult * recognizeLetter(PIX * pix, BOX * box) {
 OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
   api.SetImage(pix);
+  if (sourceResolution > 0) {
+    this->api.SetSourceResolution(sourceResolution);
+  } 
+  api.SetPageSegMode(tesseract::PSM_SINGLE_CHAR);
   char * recognizedText = api.GetUTF8Text();
   int *confidences = api.AllWordConfidences();
   int confidence = api.MeanTextConf();
+
+  // no improvement achieved
+  if (confidence < 75) {
+    api.Clear();
+    api.SetImage(pix);
+    tesseract::PageSegMode pagesegmodeChar = static_cast<tesseract::PageSegMode>(10);
+    api.SetPageSegMode(tesseract::PSM_SINGLE_WORD);
+    char * recognizedWord = api.GetUTF8Text();
+    int wordConfidence = api.MeanTextConf();
+    fprintf(stderr, "Recognized as char %s with confidence %d vs recognized as word (textline) %s with confidence %d\n",
+                          recognizedText, confidence, recognizedWord, wordConfidence);
+    if (wordConfidence > confidence) {
+      fprintf(stderr, "OCR Result improved\n");
+      confidences = api.AllWordConfidences();
+      recognizedText = recognizedWord;
+      confidence = wordConfidence;
+    }
+  } else {
+    fprintf(stderr, "Recognized as char %s with confidence %d\n", recognizedText, confidence);
+  }
   OcrResult * result = new OcrResult(pix);
   result->setCharsWithConfidences(recognizedText, confidences);
   result->setRecognizedTextWithMeanConfidence(recognizedText, confidence);
+  api.Clear();
   return result;
 }
 
