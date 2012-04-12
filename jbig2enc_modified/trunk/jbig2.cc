@@ -390,9 +390,11 @@ main(int argc, char **argv) {
   struct jbig2ctx *ctx = jbig2_init(threshold, 0.5, 0, 0, !pdfmode, refine ? 10 : -1);
   int pageno = -1;
 
-  //PIX * firstImg;
-  //PIX * secondImg;
-  //int imgNum = 0;
+/*
+  PIX * firstImg;
+  PIX * secondImg;
+  int imgNum = 0;
+*/
 
   l_uint32 dpiResolution = 0; // added by RH
   int numsubimages=0, subimage=0, num_pages = 0;
@@ -454,7 +456,8 @@ main(int argc, char **argv) {
 
    // creating bitmap containing differencies between first two images
    // given as arguments at command line
-/*    if (imgNum == 0) {
+/*
+    if (imgNum == 0) {
       firstImg = pixCopy(NULL, pixt);
     } else if (imgNum == 1) {
       secondImg = pixCopy(NULL, pixt);

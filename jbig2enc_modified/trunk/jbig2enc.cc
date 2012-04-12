@@ -568,15 +568,23 @@ void countHash(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, int 
   }  
 }
 
-void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, map<unsigned int, std::list<int> > > &hashMap, 
+void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned int, std::list<int> > > &hashMap, 
 					std::map<l_uint32, OcrResult*> &ocrResults, char * lang) {
-  if (!jbPixa) {
-    fprintf(stderr, "no PIXA given\n");
+  if (!ctx) {
+    fprintf(stderr, "no ctx given\n");
     return;
   }
 
+  PIXA *jbPixa = ctx->classer->pixat;
+  int ppiSourceResolution = 0;
+  if (ctx->page_xres.size() > 0) {
+    ppiSourceResolution = ctx->page_xres.at(0);
+  } else {
+    ppiSourceResolution = ctx->xres;
+  }
+  fprintf(stderr, "ppiResolution: %d\n", ppiSourceResolution);
   // initialize ocrEngine
-  TesseractOcr * ocr = new TesseractOcr(lang);
+  TesseractOcr * ocr = new TesseractOcr(lang, ppiSourceResolution);
   ocr->init();
   
   // counting hashes with ocrResults
@@ -588,6 +596,7 @@ void countHashWithOCR(PIXA * jbPixa, std::map<unsigned int, map<unsigned int, st
     //finding num of holes
     l_int32 holes;
     pixCountConnComp(pix, 4, &holes);
+    printPix(pixScaleByIntSubsampling(pix,2));
     OcrResult * ocrResult = ocr->recognizeLetter(pix);
 
     // put here just for testing purposes
@@ -709,8 +718,8 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
   std::map<unsigned int, OcrResult*> ocrResults;
 
   // creating hash value for each representant
-  PIXA *jbPixa = ctx->classer->pixat; 
-  countHashWithOCR(jbPixa, hashedTemplates, ocrResults, lang);
+  
+  countHashWithOCR(ctx, hashedTemplates, ocrResults, lang);
   printHashTree(hashedTemplates);
 
   map<unsigned int, list<int> > newRepresentants; // where int is chosenOne and vector<int> are old ones which should be replaced by chosenOne (united with it)
@@ -772,11 +781,15 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
           fprintf(stderr, "distance of %d to %d is %f (confidences: first %d, second %d)\n", (*itLastFirstTemplate), (*itSecondTemplate), 
                                 distance, ocrResultFirst->getConfidence(), ocrResultSecond->getConfidence());
           
-          if (distance < 0.3) {
+          if (distance < 0.285) {
    
             //if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) && 
             //(strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {
             // unite templates without removing (just reindexing) but add to array for later remove
+            fprintf(stderr, "Representant %d and %d found equivalent\n", (*itLastFirstTemplate), (*itSecondTemplate));
+            printPix(ocrResultFirst->getPix());
+            printPix(ocrResultSecond->getPix());
+
             
             // checks if this wouldn't be a better template to be used as representant based on OCR engine character 
             // recognition confidence
