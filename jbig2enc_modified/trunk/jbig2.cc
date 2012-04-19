@@ -521,7 +521,7 @@ main(int argc, char **argv) {
       autoThreshold(ctx);
     } 
     if (useOcr) {
-      if (dpiResolution >= 200) {
+      if (dpiResolution == 0 || dpiResolution >= 200) {
         fprintf(stderr, "Using hash and OCR\n");
 		if (threshold > 0.86) {
 	 	  autoThresholdUsingHash(ctx);

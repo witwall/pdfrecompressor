@@ -63,7 +63,7 @@ void TesseractOcr::init() {
 OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
   api.SetImage(pix);
   if (sourceResolution > 0) {
-    this->api.SetSourceResolution(sourceResolution);
+    api.SetSourceResolution(sourceResolution);
   } 
   api.SetPageSegMode(tesseract::PSM_SINGLE_CHAR);
   char * recognizedText = api.GetUTF8Text();
@@ -74,7 +74,6 @@ OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
   if (confidence < 75) {
     api.Clear();
     api.SetImage(pix);
-    tesseract::PageSegMode pagesegmodeChar = static_cast<tesseract::PageSegMode>(10);
     api.SetPageSegMode(tesseract::PSM_SINGLE_WORD);
     char * recognizedWord = api.GetUTF8Text();
     int wordConfidence = api.MeanTextConf();
