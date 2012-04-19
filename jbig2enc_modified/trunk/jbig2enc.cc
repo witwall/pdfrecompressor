@@ -52,6 +52,7 @@
 #include "jbig2comparator.h"
 #include "ocrResult.h"
 #include "jbig2ocr.h"
+#include "result.h"
 
 using namespace std;
 
@@ -505,8 +506,10 @@ void autoThreshold(struct jbig2ctx *ctx) {
     }
   
 */
+    Result *result = new Result(jbPix);
     for (int j = i+1; j < pixaGetCount(jbPixa); j++) {
-      if (areEquivalent(jbPix, jbPixa->pix[j])) {
+      //if (areEquivalent(jbPix, jbPixa->pix[j])) {
+      if (result->getDistance(new Result(jbPixa->pix[j])) < 0.5 ) {
         uniteTemplatesWithIndexes(ctx, i, j);
         j--;
       }
@@ -596,7 +599,8 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     //finding num of holes
     l_int32 holes;
     pixCountConnComp(pix, 4, &holes);
-    printPix(pixScaleByIntSubsampling(pix,2));
+//     printPix(pixScaleByIntSubsampling(pix,2));
+    printPix(pix);
     OcrResult * ocrResult = ocr->recognizeLetter(pix);
 
     // put here just for testing purposes
@@ -882,7 +886,10 @@ void autoThresholdUsingHash(struct jbig2ctx *ctx) {
       for (++itSecondTemplate; itSecondTemplate != it->second.end();) {
 	      //fprintf(stderr, "  -- itSecondTemplate: %d\n", (*itSecondTemplate));
         if (areEquivalent(jbPixa->pix[(*itFirstTemplate)], jbPixa->pix[(*itSecondTemplate)])) {
-	  // unite templates without removing (just reindexing) but add to array for later remove
+          fprintf(stderr, "Found PIXes which seems to be equivalent");
+          printPix(jbPixa->pix[(*itFirstTemplate)]);
+          printPix(jbPixa->pix[(*itSecondTemplate)]);
+          // unite templates without removing (just reindexing) but add to array for later remove
           templates.push_back((*itSecondTemplate));
           itSecondTemplate = (it->second.erase(itSecondTemplate));          
         } else {

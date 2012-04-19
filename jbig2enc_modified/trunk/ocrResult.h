@@ -4,10 +4,10 @@
 #include <allheaders.h>
 #include <pix.h>
 #include <map>
+#include "result.h"
 
-class OcrResult {
-  private:
-    PIX * pix;
+class OcrResult : public Result {
+  protected:
     std::map<char, int> charConfidences;
     char * recognizedText;
     int numOfChars;
@@ -49,14 +49,6 @@ class OcrResult {
 
     void setConfidence(int meanConfidence) {
       this->meanConfidence = meanConfidence;
-    }
-
-    PIX * getPix() {
-      return pix;
-    }
-
-    void setPix(PIX * pix) {
-      this->pix = pix;
     }
 
     char * getRecognizedText() {

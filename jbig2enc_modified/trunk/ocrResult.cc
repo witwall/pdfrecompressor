@@ -65,7 +65,8 @@ float OcrResult::getPixDistance(PIX * otherPix) {
     return 0;
   }
 
-  distance += ((*diffCount)/(thisPix->w * thisPix->h))/100.0;
+//   distance += ((*diffCount)/(thisPix->w * thisPix->h));
+  distance += (*diffCount)/(*thisCount);
 
   return distance;
 }
@@ -87,7 +88,7 @@ float OcrResult::getDistance(OcrResult * ocrResult) {
     uncertainity = 100 - this->getConfidence();
   }
   distance += (((confDiff/3.0)+1) * (uncertainity + 1))*0.3;
-  distance *= (uncertainity/100);
+  distance *= (uncertainity/50);
 
   return distance;
 }

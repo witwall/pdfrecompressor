@@ -19,21 +19,19 @@ jbig2: libjbig2enc.a jbig2.cc
 	#$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/.libs/liblept.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm 
 
 
-libjbig2enc.a: jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o ocrResult.o ocrResults.o
-	ar -rcv libjbig2enc.a jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o ocrResult.o ocrResults.o
+libjbig2enc.a: jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o ocrResult.o result.o
+	ar -rcv libjbig2enc.a jbig2enc.o jbig2arith.o jbig2sym.o jbig2comparator.o jbig2ocr.o result.o ocrResult.o 
 
 jbig2enc.o: jbig2enc.cc jbig2arith.h jbig2sym.h jbig2structs.h jbig2segments.h jbig2comparator.h
 	$(CC) -c jbig2enc.cc $(CFLAGS)
 jbig2comparator.o: jbig2comparator.cc jbig2comparator.h jbig2ocr.h
 	$(CC) -c jbig2comparator.cc $(CFLAGS)
-jbig2ocr.o: jbig2ocr.cc jbig2ocr.h ocrResult.h
+jbig2ocr.o: jbig2ocr.cc jbig2ocr.h ocrResult.h jbig2comparator.o
 	$(CC) -c jbig2ocr.cc $(CFLAGS)
 ocrResult.o: ocrResult.h ocrResult.cc
 	$(CC) -c ocrResult.cc $(CFLAGS)
-ocrResults.o: ocrResults.h ocrResults.cc ocrResult.h
-	$(CC) -c ocrResults.cc $(CFLAGS)
-#ocrResultKey.o: ocrResultKey.h ocrResult.h ocrResultKey.cc
-	#$(CC) -c ocrResultKey.cc $(CFLAGS)
+result.o: result.h result.cc
+	$(CC) -c result.cc $(CFLAGS)
 jbig2arith.o: jbig2arith.cc jbig2arith.h
 	$(CC) -c jbig2arith.cc $(CFLAGS)
 jbig2sym.o: jbig2sym.cc jbig2arith.h
