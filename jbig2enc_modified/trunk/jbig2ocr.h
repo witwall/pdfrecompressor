@@ -41,7 +41,7 @@ class OcrEngine {
         this->sourceResolution = ppi;
       }
 
-      virtual ~OcrEngine() {};
+      ~OcrEngine() {};
 
       virtual void init() = 0;
 

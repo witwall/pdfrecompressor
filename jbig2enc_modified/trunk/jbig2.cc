@@ -396,7 +396,7 @@ main(int argc, char **argv) {
   int imgNum = 0;
 */
 
-  l_uint32 dpiResolution = 0; // added by RH
+  l_int32 dpiResolution = 0; // added by RH
   int numsubimages=0, subimage=0, num_pages = 0;
   while (i < argc) {
     if (subimage==numsubimages) {

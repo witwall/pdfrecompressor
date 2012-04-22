@@ -26,7 +26,7 @@ class Result {
       this->pix = pix;
     }
 
-    float getDistance(Result *result);
+    virtual float getDistance(Result *result);
 
 };
 
