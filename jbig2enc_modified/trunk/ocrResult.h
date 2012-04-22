@@ -7,12 +7,13 @@
 #include "result.h"
 
 class OcrResult : public Result {
-  protected:
+  private:
     std::map<char, int> charConfidences;
     char * recognizedText;
     int numOfChars;
     int meanConfidence;
-  
+    float getPixDistance(PIX * pix);
+ 
   public:
     OcrResult() {
       this->numOfChars = 0;
@@ -71,9 +72,7 @@ class OcrResult : public Result {
 
     void setRecognizedTextWithMeanConfidence(char * chars, int meanConfidence);
 
-    float getDistance(OcrResult * ocrResults);
-
-    float getPixDistance(PIX * pix);
-
+    virtual float getDistance(OcrResult * ocrResults);
+  
 };
 #endif

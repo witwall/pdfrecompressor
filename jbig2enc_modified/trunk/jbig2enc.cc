@@ -587,8 +587,10 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
   }
   fprintf(stderr, "ppiResolution: %d\n", ppiSourceResolution);
   // initialize ocrEngine
-  TesseractOcr * ocr = new TesseractOcr(lang, ppiSourceResolution);
+  OcrEngine * ocr = new TesseractOcr(lang, ppiSourceResolution);
+  fprintf(stderr, "starting initialization of Tesseract OCR for lang %s\n", lang);
   ocr->init();
+  fprintf(stderr, "Tesseract OCR baseapi initialized\n");
   
   // counting hashes with ocrResults
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
@@ -599,8 +601,8 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     //finding num of holes
     l_int32 holes;
     pixCountConnComp(pix, 4, &holes);
-//     printPix(pixScaleByIntSubsampling(pix,2));
-    printPix(pix);
+    printPix(pixScaleByIntSubsampling(pix,2));
+//     printPix(pix);
     OcrResult * ocrResult = ocr->recognizeLetter(pix);
 
     // put here just for testing purposes
@@ -785,7 +787,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
           fprintf(stderr, "distance of %d to %d is %f (confidences: first %d, second %d)\n", (*itLastFirstTemplate), (*itSecondTemplate), 
                                 distance, ocrResultFirst->getConfidence(), ocrResultSecond->getConfidence());
           
-          if (distance < 0.285) {
+          if (distance < 0.285 && distance >= 0) {
    
             //if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) && 
             //(strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {

@@ -76,19 +76,19 @@ float OcrResult::getPixDistance(PIX * otherPix) {
  * with same lettersRecognized
  */
 float OcrResult::getDistance(OcrResult * ocrResult) {
-  float distance = 0.0;
-  distance += strcmp(this->getRecognizedText(),ocrResult->getRecognizedText());
-  distance += (getPixDistance(ocrResult->pix)*0.7);
-  float confDiff = fabs(this->getConfidence()-ocrResult->getConfidence());
+    float distance = 0.0;
+    distance += strcmp(this->getRecognizedText(),ocrResult->getRecognizedText());
+    distance += (getPixDistance(ocrResult->pix)*0.7);
+    float confDiff = fabs(this->getConfidence()-ocrResult->getConfidence());
 
-  float uncertainity = 0.0;
-  if (this->getConfidence() > ocrResult->getConfidence()) {
-    uncertainity = 100 - ocrResult->getConfidence();
-  } else {
-    uncertainity = 100 - this->getConfidence();
-  }
-  distance += (((confDiff/3.0)+1) * (uncertainity + 1))*0.3;
-  distance *= (uncertainity/50);
+    float uncertainity = 0.0;
+    if (this->getConfidence() > ocrResult->getConfidence()) {
+      uncertainity = 100 - ocrResult->getConfidence();
+    } else {
+      uncertainity = 100 - this->getConfidence();
+    }
+    distance += (((confDiff/3.0)+1) * (uncertainity + 1))*0.3;
+    distance *= (uncertainity/50);
 
-  return distance;
+    return distance;
 }
