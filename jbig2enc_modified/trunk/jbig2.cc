@@ -517,15 +517,16 @@ main(int argc, char **argv) {
   if (autoThresh) {
     if (hash && !useOcr) {
       autoThresholdUsingHash(ctx);
-    } else {
+    } 
+    if (!hash && !useOcr) {
       autoThreshold(ctx);
     } 
     if (useOcr) {
       if (dpiResolution == 0 || dpiResolution >= 200) {
         fprintf(stderr, "Using hash and OCR\n");
-		if (threshold > 0.86) {
+    	if (threshold > 0.86) {
 	 	  autoThresholdUsingHash(ctx);
-		}
+    	}
         autoThresholdUsingHashAndOCR(ctx, lang);
       } else {
         fprintf(stderr, "Quality of input image is not good enough for OCR (%d < 200 dpi) => running without OCR)", dpiResolution);
