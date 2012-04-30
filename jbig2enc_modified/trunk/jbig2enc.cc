@@ -587,7 +587,7 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     ppiSourceResolution = ctx->xres;
   }
   fprintf(stderr, "ppiResolution: %d\n", ppiSourceResolution);
-#pragma omp parallel num_threads(4)
+#pragma omp parallel //num_threads(4)
   {
   OcrEngine * ocr;
 
@@ -612,8 +612,9 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
 #pragma omp critical
     {
     printPix(pixScaleByIntSubsampling(pix,2));
-    }
+    
 //     printPix(pix);
+    }
     OcrResult * ocrResult = ocr->recognizeLetter(pix);
 
     // put here just for testing purposes
