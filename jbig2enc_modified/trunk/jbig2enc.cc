@@ -53,6 +53,7 @@
 #include "ocrResult.h"
 #include "jbig2ocr.h"
 #include "result.h"
+#include <omp.h>
 
 using namespace std;
 
@@ -586,13 +587,20 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     ppiSourceResolution = ctx->xres;
   }
   fprintf(stderr, "ppiResolution: %d\n", ppiSourceResolution);
+#pragma omp parallel num_threads(4)
+  {
+  OcrEngine * ocr;
+
   // initialize ocrEngine
-  OcrEngine * ocr = new TesseractOcr(lang, ppiSourceResolution);
+  ocr = new TesseractOcr(lang, ppiSourceResolution);
   fprintf(stderr, "starting initialization of Tesseract OCR for lang %s\n", lang);
   ocr->init();
   fprintf(stderr, "Tesseract OCR baseapi initialized\n");
-  
-  // counting hashes with ocrResults
+
+
+  #pragma omp for 
+
+//  counting hashes with ocrResults
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
     PIX * pix = jbPixa->pix[i];
     l_uint32 w = pixGetWidth(pix);
@@ -601,19 +609,23 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     //finding num of holes
     l_int32 holes;
     pixCountConnComp(pix, 4, &holes);
+#pragma omp critical
+    {
     printPix(pixScaleByIntSubsampling(pix,2));
+    }
 //     printPix(pix);
     OcrResult * ocrResult = ocr->recognizeLetter(pix);
 
     // put here just for testing purposes
 //    ocr->recognizeLetterDetailInfo(pix);
 
+    #pragma omp critical
+    {
     ocrResults.insert(pair<l_uint32, OcrResult*>(i, ocrResult));
     unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
 
     unsigned int hash = (h * w);
-//    fprintf(stderr, "hash: %d, holes: %d, h: %d, w: %d, ascii: %d\n", hash, holes, h, w, asciiSum);
-
+    fprintf(stderr, "hash: %d, holes: %d, h: %d, w: %d, ascii: %d\n", hash, holes, h, w, asciiSum);
 
     map<unsigned int, map<unsigned int, std::list<int> > >::iterator asciiSumIt;
     asciiSumIt = hashMap.find(asciiSum);
@@ -640,7 +652,9 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
 //         fprintf(stderr, "Adding new template %d to hash %d and character %d with bucket size %d\n", i, hash, asciiSum, asciiSumIt->second.find(hash)->second.size());
       }
     }
-  }  
+    }
+  }
+  }
 }
 
 void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMap, l_uint32 templateIdx, 
