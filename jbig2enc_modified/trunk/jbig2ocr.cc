@@ -66,9 +66,9 @@ OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
     api.SetSourceResolution(sourceResolution);
   } 
   api.SetPageSegMode(tesseract::PSM_SINGLE_WORD);
-  fprintf(stderr, "Getting UTF8 text\n");
+//   fprintf(stderr, "Getting UTF8 text\n");
   char * recognizedText = api.GetUTF8Text();
-  fprintf(stderr, "Recognized text %s\n", recognizedText);
+//   fprintf(stderr, "Recognized text %s\n", recognizedText);
   int *confidences = api.AllWordConfidences();
   int confidence = api.MeanTextConf();
 
@@ -90,7 +90,7 @@ OcrResult * TesseractOcr::recognizeLetter(PIX * pix) {
     }
   } else {
 */
-    fprintf(stderr, "Recognized as char %s with confidence %d\n", recognizedText, confidence);
+//     fprintf(stderr, "Recognized as char %s with confidence %d\n", recognizedText, confidence);
 //   }
   OcrResult * result = new OcrResult(pix);
   result->setCharsWithConfidences(recognizedText, confidences);

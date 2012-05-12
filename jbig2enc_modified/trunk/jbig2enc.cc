@@ -586,16 +586,16 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
   } else {
     ppiSourceResolution = ctx->xres;
   }
-  fprintf(stderr, "ppiResolution: %d\n", ppiSourceResolution);
+//   fprintf(stderr, "ppiResolution: %d\n", ppiSourceResolution);
 #pragma omp parallel //num_threads(4)
   {
   OcrEngine * ocr;
 
   // initialize ocrEngine
   ocr = new TesseractOcr(lang, ppiSourceResolution);
-  fprintf(stderr, "starting initialization of Tesseract OCR for lang %s\n", lang);
+//   fprintf(stderr, "starting initialization of Tesseract OCR for lang %s\n", lang);
   ocr->init();
-  fprintf(stderr, "Tesseract OCR baseapi initialized\n");
+//   fprintf(stderr, "Tesseract OCR baseapi initialized\n");
 
 
   #pragma omp for 
@@ -611,7 +611,7 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     pixCountConnComp(pix, 4, &holes);
 #pragma omp critical
     {
-    printPix(pixScaleByIntSubsampling(pix,2));
+//      printPix(pixScaleByIntSubsampling(pix,2));
     
 //     printPix(pix);
     }
@@ -626,7 +626,7 @@ void countHashWithOCR(struct jbig2ctx * ctx, std::map<unsigned int, map<unsigned
     unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
 
     unsigned int hash = (h * w);
-    fprintf(stderr, "hash: %d, holes: %d, h: %d, w: %d, ascii: %d\n", hash, holes, h, w, asciiSum);
+//     fprintf(stderr, "hash: %d, holes: %d, h: %d, w: %d, ascii: %d\n", hash, holes, h, w, asciiSum);
 
     map<unsigned int, map<unsigned int, std::list<int> > >::iterator asciiSumIt;
     asciiSumIt = hashMap.find(asciiSum);
@@ -692,7 +692,7 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
   ocrResults.insert(pair<l_uint32, OcrResult*>(templateIdx,ocrResult));
   unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
 
-  //fprintf(stderr, "holes: %d, h: %d, w: %d, ascii: %d\n",holes, h, w, asciiSum);
+  fprintf(stderr, "holes: %d, h: %d, w: %d, ascii: %d\n",holes, h, w, asciiSum);
   unsigned int hash = (holes + 10 * h + 10000 * w + 1000000 * asciiSum) % 1000000000;
 
   map<unsigned int, list<int> >::iterator it;
@@ -741,7 +741,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
   // creating hash value for each representant
   
   countHashWithOCR(ctx, hashedTemplates, ocrResults, lang);
-  printHashTree(hashedTemplates);
+//   printHashTree(hashedTemplates);
 
   map<unsigned int, list<int> > newRepresentants; // where int is chosenOne and vector<int> are old ones which should be replaced by chosenOne (united with it)
 
@@ -778,11 +778,11 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
         }
 
         int bestConfidence = ocrResultFirst->getConfidence();
+        OcrResult *bestOcrResult = ocrResultFirst;
         std::list<int>::iterator itBestTemplate = itFirstTemplate;
 
         char * recogText = ocrResultFirst->getRecognizedText();
-//      fprintf(stderr, "\ntext %s with confidence %d: ", recogText, ocrResultFirst->getConfidence());
-//      std::cerr << "\ntext " << recogText << " with confidence " << ocrResultFirst->getConfidence() << ": ";
+//         fprintf(stderr, "\ntext %s with confidence %d: ", recogText, ocrResultFirst->getConfidence());
 
         itSecondTemplate = itFirstTemplate;
         itLastFirstTemplate = itFirstTemplate;
@@ -798,16 +798,16 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
             itSecondTemplate++;
             continue;
           }
-          float distance = ocrResultFirst->getDistance(ocrResultSecond);
-          fprintf(stderr, "distance of %d to %d is %f (confidences: first %d, second %d)\n", (*itLastFirstTemplate), (*itSecondTemplate), 
-                                distance, ocrResultFirst->getConfidence(), ocrResultSecond->getConfidence());
+          float distance = bestOcrResult->getDistance(ocrResultSecond);
+          fprintf(stderr, "distance of %d to %d is %f (confidences: best %d, second %d)\n", (*itBestTemplate), 
+            (*itSecondTemplate), distance, bestOcrResult->getConfidence(), ocrResultSecond->getConfidence());
           
           if (distance < 0.285 && distance >= 0) {
    
             //if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) && 
             //(strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {
             // unite templates without removing (just reindexing) but add to array for later remove
-            fprintf(stderr, "Representant %d and %d found equivalent\n", (*itLastFirstTemplate), (*itSecondTemplate));
+            fprintf(stderr, "Representant %d and %d found equivalent\n", (*itBestTemplate), (*itSecondTemplate));
             printPix(ocrResultFirst->getPix());
             printPix(ocrResultSecond->getPix());
 
@@ -823,6 +823,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
               }
               it->second.erase(itBestTemplate);
               itBestTemplate = itSecondTemplate;
+              bestOcrResult = ocrResultSecond;
               itSecondTemplate++;
                             
             } else {
@@ -903,9 +904,11 @@ void autoThresholdUsingHash(struct jbig2ctx *ctx) {
       for (++itSecondTemplate; itSecondTemplate != it->second.end();) {
 	      //fprintf(stderr, "  -- itSecondTemplate: %d\n", (*itSecondTemplate));
         if (areEquivalent(jbPixa->pix[(*itFirstTemplate)], jbPixa->pix[(*itSecondTemplate)])) {
+/*
           fprintf(stderr, "Found PIXes which seems to be equivalent");
           printPix(jbPixa->pix[(*itFirstTemplate)]);
           printPix(jbPixa->pix[(*itSecondTemplate)]);
+*/
           // unite templates without removing (just reindexing) but add to array for later remove
           templates.push_back((*itSecondTemplate));
           itSecondTemplate = (it->second.erase(itSecondTemplate));          
