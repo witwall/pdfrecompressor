@@ -56,6 +56,7 @@ usage(const char *argv0) {
   fprintf(stderr, "  -useOcr: engages using autoThresholding with usage of OCR engine (actually tesseract used) -- not fully implemented yet; requires option autoThresh enabled\n");
   fprintf(stderr, "  -nohash: only for debugging purposes to allow easily compare performance with older version\n");
   fprintf(stderr, "  -lang <lang>: used by -useOcr; allows to set language in format which uses OCR engine (it should be given in appropriate format (def: eng)\n");
+  fprintf(stderr, "  -ff: used only with option -useOcr and forces OCR usage even for images with unknown image resolution\n");
   fprintf(stderr, "  -v: be verbose\n");
 }
 
@@ -233,6 +234,7 @@ main(int argc, char **argv) {
   bool hash = true;
   bool useOcr = false;
   char *lang = "eng";
+  bool forceOcr = false;
 
   for (i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "-h") == 0 ||
@@ -351,6 +353,11 @@ main(int argc, char **argv) {
 
     if (strcmp(argv[i], "-useOcr") == 0) {
       useOcr = true;
+      continue;
+    }
+
+    if (strcmp(argv[i], "-ff") == 0) {
+      forceOcr = true;
       continue;
     }
 
@@ -518,7 +525,7 @@ main(int argc, char **argv) {
       autoThreshold(ctx);
     } 
     if (useOcr) {
-      if (dpiResolution == 0 || dpiResolution >= 200) {
+      if ((dpiResolution == 0 && forceOcr) || dpiResolution >= 200) {
         fprintf(stderr, "Using hash and OCR\n");
     	if (threshold > 0.86) {
 	 	  autoThresholdUsingHash(ctx);

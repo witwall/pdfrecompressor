@@ -78,7 +78,7 @@ float OcrResult::getPixDistance(PIX * otherPix) {
 float OcrResult::getDistance(OcrResult * ocrResult) {
     float distance = 0.0;
     distance += strcmp(this->getRecognizedText(),ocrResult->getRecognizedText());
-    distance += (getPixDistance(ocrResult->pix)*0.7);
+    distance += (getPixDistance(ocrResult->pix)*0.8);
     float confDiff = fabs(this->getConfidence()-ocrResult->getConfidence());
 
     float uncertainity = 0.0;
