@@ -55,6 +55,8 @@ public class Run {
         Boolean silent = false;
         Boolean binarize = false;
         boolean useOcr = false;
+        String lang = null;
+        boolean forceOcr = false;
         String basename = System.getProperty("java.io.tmpdir") + "/output";
 
 
@@ -151,6 +153,21 @@ public class Run {
                 useOcr = true;
                 continue;
             }
+            
+            if (args[i].equalsIgnoreCase("-lang")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                } else {
+                    lang = args[i];
+                }
+                continue;
+            }
+            
+            if (args[i].equalsIgnoreCase("-ff")) {
+                forceOcr = true;
+                continue;
+            }
 
             if (args[i].equalsIgnoreCase("-q")) {
                 silent = true;
@@ -217,6 +234,8 @@ public class Run {
             jbig2.setBwThresh(bwThresh);
             jbig2.setDefaultThresh(defaultThresh);
             jbig2.setUseOcr(useOcr);
+            jbig2.setForcedOcrForUnknownResolution(forceOcr);
+            jbig2.setLang(lang);
 
             // engages jbig2enc with set parameters and creates output files based on basename
             jbig2.run(jbig2encInputImages, basename);
@@ -304,7 +323,10 @@ public class Run {
                 + "-bw_thresh <value of BW thresholding>: sets value for bw thresholding to encoder (in jbig2enc it is switch -T)\n"
                 + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored) -- now it is not working\n"
                 + "-binarize: enables to process not bi-tonal images (normally only bi-tonal images are processed and other are skipped)\n"
-                + "-basename <basename> sets the basename for output files of jbig2enc\n"
+                + "-basename <basename>: sets the basename for output files of jbig2enc\n"
+                + "-useOcr: engages use of an OCR engine used by jbig2enc (requires -s and -autoThresh)\n"
+                + "-lang <lang>: sets language used by an OCR engine (has effect only if -useOcr is enabled\n"
+                + "-ff: forces usage of OCR even if the source resolution is unknown"
                 + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }

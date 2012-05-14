@@ -39,7 +39,7 @@ public class Jbig2enc {
     private int bwThresh = 188;    
     private boolean useOcr = false; // enables OCR usage in jbig2enc
     private String lang = null; // sets language used by OCR engine (without effect if not enable use of OCR)
-    private boolean force = false; // forces ocr usage even for unknown resolution
+    private boolean forced = false; // forces ocr usage even for unknown resolution
 
     public Jbig2enc(String jbig2enc) {
         if (jbig2enc == null) {
@@ -50,6 +50,26 @@ public class Jbig2enc {
 
     public Jbig2enc() {
         this.jbig2enc = "jbig2";
+    }
+
+    public boolean isForcedOcrForUnknownResolution() {
+        return forced;
+    }
+
+    public void setForcedOcrForUnknownResolution(boolean forced) {
+        this.forced = forced;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    /**
+     * sets language of input document used by jbig2enc and its OCR API
+     * @param lang 
+     */
+    public void setLang(String lang) {
+        this.lang = lang;
     }
 
     public boolean isAutoThresh() {
@@ -148,7 +168,7 @@ public class Jbig2enc {
             }
         }
         
-        if (force) {
+        if (forced) {
             toRun.add("-ff");
         }
         
