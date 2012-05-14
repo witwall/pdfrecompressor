@@ -30,13 +30,16 @@ import org.slf4j.LoggerFactory;
  * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class Jbig2enc {
+    
+    private static final Logger log = LoggerFactory.getLogger(Jbig2enc.class);
 
-    private String jbig2enc;
+    private String jbig2enc; // path to jbig2enc encoder executable
     private double defaultThresh = 0.85;
     private boolean autoThresh = false;
-    private int bwThresh = 188;
-    private static final Logger log = LoggerFactory.getLogger(Jbig2enc.class);
-    private boolean useOcr = false;
+    private int bwThresh = 188;    
+    private boolean useOcr = false; // enables OCR usage in jbig2enc
+    private String lang = null; // sets language used by OCR engine (without effect if not enable use of OCR)
+    private boolean force = false; // forces ocr usage even for unknown resolution
 
     public Jbig2enc(String jbig2enc) {
         if (jbig2enc == null) {
@@ -138,7 +141,15 @@ public class Jbig2enc {
             
             if (useOcr) {
                 toRun.add("-useOcr");
+                if (lang != null) {
+                    toRun.add("-lang");
+                    toRun.add(lang);
+                }
             }
+        }
+        
+        if (force) {
+            toRun.add("-ff");
         }
         
 
