@@ -4,7 +4,7 @@
     <groupId>cz.muni</groupId>
     <artifactId>pdfJbIm</artifactId>
     <packaging>jar</packaging>
-    <version>1.2</version>
+    <version>1.3</version>
     <name>pdfJbIm</name>
     <description>
         Tool used for (re)compression of PDF files using standard JBIG2
@@ -43,9 +43,9 @@
     </parent>
     
     <scm>
-        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</connection>
-        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</developerConnection>
-        <url>http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.0</url>
+        <connection>scm:svn:http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.3</connection>
+        <developerConnection>scm:svn:https://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.3</developerConnection>
+        <url>http://pdfrecompressor.googlecode.com/svn/pdfJbIm/tags/pdfJbIm-1.3</url>
     </scm>
 
 <!--    <repositories>
@@ -246,4 +246,11 @@
             </build>
         </profile>
     </profiles>
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Nexus Release Repository</name>
+            <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
