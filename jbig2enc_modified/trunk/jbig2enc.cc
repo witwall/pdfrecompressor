@@ -55,6 +55,7 @@
 #include "result.h"
 #include <omp.h>
 
+//#define OCR_DEBUGGING
 using namespace std;
 
 // -----------------------------------------------------------------------------
@@ -431,29 +432,6 @@ jbig2_destroy(struct jbig2ctx *ctx) {
   delete ctx;
 }
 
-void autoThreshUsingOCR(struct jbig2ctx *ctx) {
-  if (!ctx) {
-	fprintf(stderr, "missing structure jbig2ctx to process");
-	return;
-  }
-  fprintf(stderr, "recognizing letters using OCR\n");
-  PIXA *jbPixa = ctx->classer->pixat;
-  std::vector<OcrResult> ocrResults;
-  for (int i = 0; i < pixaGetCount(jbPixa); i++) {
-	PIX *jbPix = jbPixa->pix[i];
-
-	OcrResult * ocrResult;
-	//ocrResult = recognizeLetter(jbPix);
-
-
-    fprintf(stderr, "recognized text: %s", ocrResult->getRecognizedText());
-	fprintf(stderr, "confidence %i\n", ocrResult->getConfidence());
-    printPix(pixScaleByIntSubsampling(ocrResult->getPix(),3));
-    fprintf(stderr, "\n");
-    
-  }
-}
-
 int getBoxOfFirstInstanceOfTemplate(struct jbig2ctx *ctx, int index) {
   if (!ctx) {
     fprintf(stderr, "missing structure jbig2ctx to process");
@@ -491,22 +469,9 @@ void autoThreshold(struct jbig2ctx *ctx) {
   }
 //   fprintf(stderr, "autoThreshold used\n");
   PIXA *jbPixa = ctx->classer->pixat;
-//   BOXA * boxa = ctx->classer->pixatd->boxa; 
-//   BOX * box = NULL;
   for (int i = 0; i < pixaGetCount(jbPixa); i++) {
     PIX *jbPix = jbPixa->pix[i];
-/*
-    box = NULL;  
-    jbGetULCorners(ctx->classer, jbPix, boxa);
-    l_int32 nbox = boxaGetCount(boxa);                                                                                   
-    fprintf(stderr, "boxas %d, pixs w = %d, pix h = %d\n", nbox, jbPix->w, jbPix->h);
-    if (i < nbox) {                                                                                                  
-      box = boxa->box[i];                                                                                            
-     
-      fprintf(stderr, "x = %d, y = %d, h = %d, w = %d, refcount = %d\n", box->x, box->y, box->h, box->w, box->refcount);
-    }
-  
-*/
+
     Result *result = new Result(jbPix);
     for (int j = i+1; j < pixaGetCount(jbPixa); j++) {
       //if (areEquivalent(jbPix, jbPixa->pix[j])) {
@@ -692,7 +657,9 @@ void countHashWithOCR(PIX * pix, std::map<unsigned int, std::list<int> > &hashMa
   ocrResults.insert(pair<l_uint32, OcrResult*>(templateIdx,ocrResult));
   unsigned int asciiSum = sumAsciiValues(ocrResult->getRecognizedText(), ocrResult->getNumOfChars());
 
+#ifdef OCR_DEBUGGING
   fprintf(stderr, "holes: %d, h: %d, w: %d, ascii: %d\n",holes, h, w, asciiSum);
+#endif
   unsigned int hash = (holes + 10 * h + 10000 * w + 1000000 * asciiSum) % 1000000000;
 
   map<unsigned int, list<int> >::iterator it;
@@ -799,18 +766,21 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
             continue;
           }
           float distance = bestOcrResult->getDistance(ocrResultSecond);
+#ifdef OCR_DEBUGGING
           fprintf(stderr, "distance of %d to %d is %f (confidences: best %d, second %d)\n", (*itBestTemplate), 
             (*itSecondTemplate), distance, bestOcrResult->getConfidence(), ocrResultSecond->getConfidence());
+#endif
           
           if (distance < 0.285 && distance >= 0) {
    
             //if ((abs(ocrResultFirst->getConfidence()-ocrResultSecond->getConfidence()) < 5) && 
             //(strcmp(ocrResultFirst->getRecognizedText(),ocrResultSecond->getRecognizedText()) == 0)) {
             // unite templates without removing (just reindexing) but add to array for later remove
+#ifdef OCR_DEBUGGING
             fprintf(stderr, "Representant %d and %d found equivalent\n", (*itBestTemplate), (*itSecondTemplate));
             printPix(ocrResultFirst->getPix());
             printPix(ocrResultSecond->getPix());
-
+#endif
             
             // checks if this wouldn't be a better template to be used as representant based on OCR engine character 
             // recognition confidence
