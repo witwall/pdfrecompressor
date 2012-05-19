@@ -2,6 +2,10 @@
 #include <cmath>
 #include <string.h>
 
+#include <allheaders.h>
+#include <pix.h>
+
+
 using namespace std;
 
 
@@ -31,6 +35,16 @@ void OcrResult::setRecognizedTextWithMeanConfidence(char * chars, int meanConfid
   this->recognizedText = chars;
   this->meanConfidence = meanConfidence;
 }
+
+/**
+ * counts number of pixels in defined area using box struct
+ */
+l_float64 getNumOfPixelsInRegion(PIX * pix, BOX * box) {
+  l_float64 psum;
+  pixSumPixelValues(pix, box, &psum);
+  return psum;
+}
+
 
 /**
  * counts distance between PIX int this OcrResult and another PIX
@@ -65,11 +79,33 @@ float OcrResult::getPixDistance(PIX * otherPix) {
     return 0;
   }
 
+  l_int32 w, h, d;
+
+  pixGetDimensions(pixd, &w, &h, &d);
+  l_uint32 xParts = 3;
+  l_uint32 yParts = 3;
+
+  l_uint32 segmentWidth = w / xParts;
+  l_uint32 segmentHeight = h / yParts;
+
+  for (int i = 0; i < xParts; i++) {
+    for (int j = 0; j < yParts; j++) {
+      BOX * box = boxCreate(i*segmentWidth,j*segmentHeight, segmentWidth, segmentHeight);
+      int localDiffPixels = getNumOfPixelsInRegion(pixd, box);
+#ifdef OCR_DEBUGGING
+      fprintf(stderr, "diffPixels found: %d\n", localDiffPixels);
+#endif
+      boxDestroy(&box);
+    }
+  }
+
 //   distance += ((*diffCount)/(thisPix->w * thisPix->h));
   distance += (*diffCount)/(*thisCount);
 
   return distance;
 }
+
+
 
 /**
  * counts distance of two ocr results (it should be checked before, that we compare only ocr results
