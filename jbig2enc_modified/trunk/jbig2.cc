@@ -36,6 +36,9 @@
 #define WINBINARY 0
 #endif
 
+// use if you want to get difference of two images supplied as arguments
+//#define DIFFERENCE_IMAGE_DEBUGGING
+
 static void
 usage(const char *argv0) {
   fprintf(stderr, "Usage: %s [options] <input filenames...>\n", argv0);
@@ -397,10 +400,11 @@ main(int argc, char **argv) {
   struct jbig2ctx *ctx = jbig2_init(threshold, 0.5, 0, 0, !pdfmode, refine ? 10 : -1);
   int pageno = -1;
 
+#ifdef DIFFERENCE_IMAGE_DEBUGGING  
   PIX * firstImg;
   PIX * secondImg;
   int imgNum = 0;
-
+#endif
   l_int32 dpiResolution = 0; // added by RH
   int numsubimages=0, subimage=0, num_pages = 0;
   while (i < argc) {
@@ -459,6 +463,7 @@ main(int argc, char **argv) {
     if (verbose)
       pixInfo(pixt, "thresholded image:");
 
+#ifdef DIFFERENCE_IMAGE_DEBUGGING
    // creating bitmap containing differencies between first two images
    // given as arguments at command line
     if (imgNum == 0) {
@@ -468,7 +473,7 @@ main(int argc, char **argv) {
       printXorOfPixesAsPng(firstImg, secondImg);
     }
     imgNum++;
-
+#endif
     // added for computing resolution for further usage added by Radim Hatlapatka (hata.radim@gmail.com)
     if (pixt->xres > dpiResolution) {
       dpiResolution = pixt->xres;
