@@ -56,7 +56,7 @@ float OcrResult::getPixDistance(PIX * otherPix) {
   distance += fabs(thisPix->w - otherPix->w);
   distance += fabs(thisPix->h - otherPix->h);
 
-  distance *= 0.1;
+  distance *= 0.3;
 
   PIX * pixd;
   pixd = pixXor(NULL, thisPix, otherPix);
@@ -82,16 +82,32 @@ float OcrResult::getPixDistance(PIX * otherPix) {
   l_int32 w, h, d;
 
   pixGetDimensions(pixd, &w, &h, &d);
-  l_uint32 xParts = 3;
+  l_uint32 xParts = 3 * pixd->wpl;
   l_uint32 yParts = 3;
 
   l_uint32 segmentWidth = w / xParts;
   l_uint32 segmentHeight = h / yParts;
 
+  l_uint32 localArea = segmentWidth * segmentHeight;
+
   for (int i = 0; i < xParts; i++) {
     for (int j = 0; j < yParts; j++) {
       BOX * box = boxCreate(i*segmentWidth,j*segmentHeight, segmentWidth, segmentHeight);
-      int localDiffPixels = getNumOfPixelsInRegion(pixd, box);
+      int localDiffPixels = getNumOfPixelsInRegion(pixd, box);      
+      float percentDiff = (float)localDiffPixels / localArea;
+      if (percentDiff < 0.05) {
+        distance += percentDiff * 0.1;
+      } else if (percentDiff < 0.1) {
+        distance += percentDiff * 0.3;
+      } else if (percentDiff < 0.2) {
+        distance += percentDiff * 1.2;
+      } else if (percentDiff < 0.4) {
+        distance += percentDiff * 3;
+      } else if (percentDiff < 0.6) {
+        distance += percentDiff * 5;
+      } else {
+        distance += percentDiff * 10;
+      }
 #ifdef OCR_DEBUGGING
       fprintf(stderr, "diffPixels found: %d\n", localDiffPixels);
 #endif
@@ -100,7 +116,7 @@ float OcrResult::getPixDistance(PIX * otherPix) {
   }
 
 //   distance += ((*diffCount)/(thisPix->w * thisPix->h));
-  distance += (*diffCount)/(*thisCount);
+  //distance += (*diffCount)/(*thisCount);
 
   return distance;
 }
@@ -114,7 +130,7 @@ float OcrResult::getPixDistance(PIX * otherPix) {
 float OcrResult::getDistance(OcrResult * ocrResult) {
     float distance = 0.0;
     distance += strcmp(this->getRecognizedText(),ocrResult->getRecognizedText());
-    distance += (getPixDistance(ocrResult->pix)*0.8);
+    distance += (getPixDistance(ocrResult->pix)*0.6);
     float confDiff = fabs(this->getConfidence()-ocrResult->getConfidence());
 
     float uncertainity = 0.0;
