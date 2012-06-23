@@ -22,10 +22,14 @@
 #include "ocrResult.h"
 #include <baseapi.h>
 
+/**
+ * Interface class for using an OCR engine in order to get text recognition results
+ * This class shouldn't be used directly, but it should be used for defining children classes with specific OCR engine
+ */
 class OcrEngine {
   protected:
-    const char * lang;
-    int sourceResolution;
+    const char * lang; // language used for text recognition, should be in format acceptable by used OCR engine
+    int sourceResolution; // resolution of the source image, can be used to improve quality of the text recognition
 
     public:
 		
@@ -43,14 +47,26 @@ class OcrEngine {
 
       ~OcrEngine() {};
 
+      /**
+       * Method used to initialized the OCR engine
+       *
+       * Given separately to minimize OCR engine initializations which is a computationally expensive operation
+       */
       virtual void init() = 0;
 
+      /**
+       * Method used to recognize text and give additional text recognition information in specialized structure 
+       * OcrResult
+       */
       virtual OcrResult * recognizeLetter(PIX * pix) = 0; 
 };
 
+/**
+ * Implementation of the OCR engine interface using Tesseract
+ */
 class TesseractOcr : public OcrEngine {
   private:
-	tesseract::TessBaseAPI api;
+	tesseract::TessBaseAPI api; // API of the Tesseract OCR engine, should be initialized with init() function
 
   public:
 	TesseractOcr(const char * lang) : OcrEngine(lang,0) { }
@@ -60,9 +76,15 @@ class TesseractOcr : public OcrEngine {
       api.End();
 	}
 
+    // initializes Tesseract OCR engine API
     void init();
 
+    /**
+     * Returns recognition results given by Tesseract OCR
+     */
     OcrResult * recognizeLetter(PIX * pix);
+
+    // just for testing purposes, will be removed in the future
     void recognizeLetterDetailInfo(PIX * pix);
 };
 

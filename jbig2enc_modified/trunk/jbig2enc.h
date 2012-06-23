@@ -146,8 +146,23 @@ jbig2_encode_generic(struct Pix *const bw, const bool full_headers,
 //      areEquivalent(PIX *const firstTemplate, PIX *const secondTemplate)
 // -----------------------------------------------------------------------------
 void autoThreshold(struct jbig2ctx *ctx);
+
+/**
+ * The same as autoThreshold, but it adds hash function in order to prevent
+ * unnecessary comparision and thus improve speed performance
+ */
 void autoThresholdUsingHash(struct jbig2ctx *ctx);
+
+/*
+ * Uses OCR in order to count difference between two templates and its results
+ * are used to decide which of the representants is better and thus improving 
+ * output image quality
+ */
 void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang);
+
+/**
+ * Put here just for testing purposes, does not use hash function and uses OCR => is extremely slow
+ */
 void autoThreshUsingOCR(struct jbig2ctx *ctx);
 
 #endif  // JBIG2ENC_JBIG2_H__

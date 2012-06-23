@@ -4,6 +4,10 @@
 #include <allheaders.h>
 #include <pix.h>
 
+
+/**
+ * Structure used as reference (fallback) point, which allows to count distance of two PIXes without using OCR
+ */
 class Result {
   protected:
     PIX * pix;
