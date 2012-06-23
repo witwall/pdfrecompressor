@@ -760,7 +760,7 @@ void autoThresholdUsingHashAndOCR(struct jbig2ctx *ctx, char * lang) {
               it->second.erase(itBestTemplate);
               itBestTemplate = itSecondTemplate;
               bestOcrResult = ocrResultSecond;
-              itSecondTemplate = itFirstTemplate;
+              //itSecondTemplate = itFirstTemplate;
               itSecondTemplate++;
             } else {
               templates.push_back((*itSecondTemplate));
