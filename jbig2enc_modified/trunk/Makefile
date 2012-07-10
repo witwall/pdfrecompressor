@@ -9,13 +9,11 @@ TESSERACT_LIBS=${TESSERACT}/api/.libs/libtesseract_api.a ${TESSERACT}/ccstruct/.
 # For example, a fink MacOSX install:
 # EXTRA=-I/sw/include/ -I/sw/include/libpng -I/sw/include/libjpeg -L/sw/lib
 CFLAGS=-I${LEPTONICA}/src -Wall -I/usr/include -I/usr/local/include -I/usr/local/include/tesseract -L/usr/lib -L/usr/local/lib -O3 ${EXTRA} -fopenmp -D_REENTRANT
-#CFLAGS=-I${LEPTONICA}/src ${TESSERACT_INCLUDES} -Wall -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib -O3 ${EXTRA}
 #CFLAGS=-I${LEPTONICA}/src -Wall -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib -O3 ${EXTRA}
 
 #-fopnmp -D_REENTRANT is used for parallelization
 jbig2: libjbig2enc.a jbig2.cc
 	$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc -lpng -ljpeg -ltiff -lgif -lm -lz -lwebp ${LEPTONICA}/src/.libs/liblept.a -ltesseract $(CFLAGS) 
-	#$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc -lpng -ljpeg -ltiff -lgif -lm ${LEPTONICA}/src/.libs/liblept.a ${TESSERACT_LIBS} $(CFLAGS)  
 	#$(CC) -o jbig2 jbig2.cc -L. -ljbig2enc ${LEPTONICA}/src/.libs/liblept.a $(CFLAGS) -lpng -ljpeg -ltiff -lgif -lm 
 
 

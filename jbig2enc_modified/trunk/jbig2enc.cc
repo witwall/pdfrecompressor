@@ -56,7 +56,7 @@
 #include <omp.h>
 
 // defines if debug information of part using OCR should be printed out to stderr
-//#define OCR_DEBUGGING
+// #define OCR_DEBUGGING
 using namespace std;
 
 // -----------------------------------------------------------------------------
@@ -257,7 +257,7 @@ int uniteTemplatesInTheList(struct jbig2ctx *ctx, int newRepresentant, list<int>
 
   // check if newRepresentant exists
   if ((newRepresentant < 0) || 
-	(newRepresentant > pixaGetCount(ctx->classer->pixat))) {
+	(newRepresentant >= pixaGetCount(ctx->classer->pixat))) {
     fprintf(stderr, "new representant template out of range");
     return 1;
   }
@@ -268,7 +268,7 @@ int uniteTemplatesInTheList(struct jbig2ctx *ctx, int newRepresentant, list<int>
     // first checking if the second template exists
     int secondTemplate = (*it);
     if ((secondTemplate < 0) || 
-	(secondTemplate > pixaGetCount(ctx->classer->pixat))) {
+	(secondTemplate >= pixaGetCount(ctx->classer->pixat))) {
       fprintf(stderr, "template: %d out of range", (*it));
       return 1;
     }
