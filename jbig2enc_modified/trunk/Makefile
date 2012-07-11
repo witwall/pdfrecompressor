@@ -1,6 +1,5 @@
 CC=g++
-#LEPTONICA=../../leptonlib-1.67
-LEPTONICA=../../leptonica-1.68
+LEPTONICA=../../../leptonica-1.69
 TESSERACT=../../../tesseract-ocr
 TESSERACT_INCLUDES=-I${TESSERACT}/api -I${TESSERACT}/ccmain -I${TESSERACT}/ccutil -I${TESSERACT}/ccstruct -I${TESSERACT}/image -I${TESSERACT}/viewer -I${TESSERACT}/dict -I${TESSERACT}/classify -I${TESSERACT}/display -I${TESSERACT}/wordrec -I${TESSERACT}/cutil -I${TESSERACT}/textord
 TESSERACT_LIBS=${TESSERACT}/api/.libs/libtesseract_api.a ${TESSERACT}/ccstruct/.libs/libtesseract_ccstruct.a ${TESSERACT}/ccutil/.libs/libtesseract_ccutil.a ${TESSERACT}/classify/.libs/libtesseract_classify.a ${TESSERACT}/cutil/.libs/libtesseract_cutil.a ${TESSERACT}/textord/.libs/libtesseract_textord.a ${TESSERACT}/dict/.libs/libtesseract_dict.a ${TESSERACT}/image/.libs/libtesseract_image.a ${TESSERACT}/viewer/.libs/libtesseract_viewer.a ${TESSERACT}/dict/.libs/libtesseract_dict.a ${TESSERACT}/cube/.libs/libtesseract_cube.a ${TESSERACT}/wordrec/.libs/libtesseract_wordrec.a ${TESSERACT}/ccmain/.libs/libtesseract_main.a   
