@@ -90,8 +90,8 @@ float OcrResult::getPixDistance(PIX * otherPix) {
 
   l_uint32 localArea = segmentWidth * segmentHeight;
 
-  for (int i = 0; i < xParts; i++) {
-    for (int j = 0; j < yParts; j++) {
+  for (l_uint32 i = 0; i < xParts; i++) {
+    for (l_uint32 j = 0; j < yParts; j++) {
       BOX * box = boxCreate(i*segmentWidth,j*segmentHeight, segmentWidth, segmentHeight);
       int localDiffPixels = getNumOfPixelsInRegion(pixd, box);      
       float percentDiff = (float)localDiffPixels / localArea;
