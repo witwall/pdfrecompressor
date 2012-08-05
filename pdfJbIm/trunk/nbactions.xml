@@ -37,4 +37,11 @@
                 <exec.executable>${profiler.java}</exec.executable>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-with dependencies</actionName>
+            <displayName>with dependencies</displayName>
+            <goals>
+                <goal>dependency:copy-dependencies</goal>
+            </goals>
+        </action>
     </actions>

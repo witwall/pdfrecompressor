@@ -30,13 +30,12 @@ import org.slf4j.LoggerFactory;
  * @author Radim Hatlapatka (hata.radim@gmail.com)
  */
 public class Jbig2enc {
-    
-    private static final Logger log = LoggerFactory.getLogger(Jbig2enc.class);
 
+    private static final Logger log = LoggerFactory.getLogger(Jbig2enc.class);
     private String jbig2enc; // path to jbig2enc encoder executable
     private double defaultThresh = 0.85;
     private boolean autoThresh = false;
-    private int bwThresh = 188;    
+    private int bwThresh = 188;
     private boolean useOcr = false; // enables OCR usage in jbig2enc
     private String lang = null; // sets language used by OCR engine (without effect if not enable use of OCR)
     private boolean forced = false; // forces ocr usage even for unknown resolution
@@ -66,7 +65,8 @@ public class Jbig2enc {
 
     /**
      * sets language of input document used by jbig2enc and its OCR API
-     * @param lang 
+     *
+     * @param lang
      */
     public void setLang(String lang) {
         this.lang = lang;
@@ -121,13 +121,12 @@ public class Jbig2enc {
         this.useOcr = useOcr;
     }
 
-
-
     /**
      * run jbig2enc with symbol coding used and output in format suitable for PDF
+     *
      * @param basename base
      * @param imageList list of images to be compressed
-     * @throws PdfRecompressionException if any problem occurs while running jbig2enc 
+     * @throws PdfRecompressionException if any problem occurs while running jbig2enc
      */
     public void run(List<String> imageList, String basename) throws PdfRecompressionException {
         if (basename == null) {
@@ -157,8 +156,8 @@ public class Jbig2enc {
         toRun.add(String.valueOf(bwThresh));
 
         if (autoThresh) {
-            toRun.add("-autoThresh");
-            
+            toRun.add("--autoThresh");
+
             if (useOcr) {
                 toRun.add("-useOcr");
                 if (lang != null) {
@@ -167,11 +166,11 @@ public class Jbig2enc {
                 }
             }
         }
-        
+
         if (forced) {
             toRun.add("-ff");
         }
-        
+
 
         toRun.addAll(imageList);
 
@@ -189,17 +188,19 @@ public class Jbig2enc {
             String line;
             while ((line = reader.readLine()) != null) {
 //                writes only a number of symbols recognised by encoder and number of pages
-//                String[] word = line.split(" ");
-//                for (int i = 0; i < word.length; i++) {
-//                    if (word[i].contains("symbols:")) {
-//                        int differenciator = word[i].indexOf(":");
-//                        String symNum = word[i].substring(differenciator+1);
-//                        System.out.print(";" + symNum);
-//                    }
-//                    if (word[i].contains("pages:")) {
-//                        int differenciator = word[i].indexOf(":");
-//                        String pageNum = word[i].substring(differenciator+1);
-//                        System.out.print(";" + pageNum);
+//                if (line.contains("JBIG2 compression complete")) {
+//                    String[] word = line.split(" ");
+//                    for (int i = 0; i < word.length; i++) {
+//                        if (word[i].contains("symbols:")) {
+//                            int differenciator = word[i].indexOf(":");
+//                            String symNum = word[i].substring(differenciator + 1);
+//                            System.err.print(";" + symNum);
+//                        }
+//                        if (word[i].contains("pages:")) {
+//                            int differenciator = word[i].indexOf(":");
+//                            String pageNum = word[i].substring(differenciator + 1);
+//                            System.err.print(";" + pageNum);
+//                        }
 //                    }
 //                }
 

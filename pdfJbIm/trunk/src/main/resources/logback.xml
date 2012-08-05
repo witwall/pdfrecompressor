@@ -13,7 +13,7 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>pdfJbIm.log</file>
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</Pattern>
+            <Pattern>%date %level %logger{10} [%file:%line] %msg%n</Pattern>
         </layout>
     </appender>
 
@@ -24,12 +24,12 @@
     </appender>
 
     <logger name="logToFile">
-        <level value="warn"/>
+        <level value="DEBUG"/>
         <appender-ref ref="FILE" />
     </logger>
 
     <root>
         <level value="DEBUG" />    
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
 </configuration>
