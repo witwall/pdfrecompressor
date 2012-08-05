@@ -37,7 +37,7 @@ public class Run {
 
     /**
      * @param args the command line arguments
-     * @throws PdfRecompressionException 
+     * @throws PdfRecompressionException
      */
     public static void main(String[] args) throws PdfRecompressionException {
         if (args.length < 4) {
@@ -58,6 +58,8 @@ public class Run {
         String lang = null;
         boolean forceOcr = false;
         String basename = System.getProperty("java.io.tmpdir") + "/output";
+        
+        int limit = Integer.MAX_VALUE;
 
 
         // parsing arguments of main method
@@ -148,12 +150,12 @@ public class Run {
                 autoThresh = true;
                 continue;
             }
-            
+
             if (args[i].equalsIgnoreCase("-useOcr")) {
                 useOcr = true;
                 continue;
             }
-            
+
             if (args[i].equalsIgnoreCase("-lang")) {
                 i++;
                 if (i >= args.length) {
@@ -164,6 +166,20 @@ public class Run {
                 continue;
             }
             
+            if (args[i].equals("-limit")) {
+                i++;
+                if (i >= args.length) {
+                    usage();
+                } else {
+                    limit = Integer.parseInt(args[i]);
+                    if (limit <= 0) {
+                        System.err.println("Setting limit of pages per global dictionary to maximal value");
+                        limit = Integer.MAX_VALUE;
+                    }
+                    continue;
+                }
+            }
+
             if (args[i].equalsIgnoreCase("-ff")) {
                 forceOcr = true;
                 continue;
@@ -237,6 +253,7 @@ public class Run {
             jbig2.setForcedOcrForUnknownResolution(forceOcr);
             jbig2.setLang(lang);
 
+            System.err.print(pdfFile);
             // engages jbig2enc with set parameters and creates output files based on basename
             jbig2.run(jbig2encInputImages, basename);
         }
@@ -249,10 +266,10 @@ public class Run {
         String basenameDir = ".";
         if (lastPathSeparator != -1) {
             basenameDir = basename.substring(0, lastPathSeparator);
-            basename = basename.substring(lastPathSeparator+1);
+            basename = basename.substring(lastPathSeparator + 1);
         }
         log.debug("basename dir = {} and basename = {}", basenameDir, basename);
-        Jbig2ForPdf pdfImages = new Jbig2ForPdf(basenameDir,basename);
+        Jbig2ForPdf pdfImages = new Jbig2ForPdf(basenameDir, basename);
         pdfImages.setJbig2ImagesInfo(pdfImagesInfo);
 
         // creating output
@@ -279,11 +296,11 @@ public class Run {
             // counting some logging info concerning sizes of input vs output
             long sizeOfOutputPdf = fileName.length();
             float saved = (((float) (sizeOfInputPdf - sizeOfOutputPdf)) / sizeOfInputPdf) * 100;
-            if (!silent) {
-                log.info("Size of pdf before recompression = {}", sizeOfInputPdf);
-                log.info("Size of pdf file after recompression = {}", sizeOfOutputPdf);
-                log.info("=> Saved {} % from original size", String.format("%.2f", saved));
-            }
+            log.info("Size of pdf before recompression = {}", sizeOfInputPdf);
+            log.info("Size of pdf file after recompression = {}", sizeOfOutputPdf);
+            log.info("=> Saved {} % from original size", String.format("%.2f", saved));
+            System.err.print(String.format(";%d;%d", sizeOfInputPdf, sizeOfOutputPdf));
+            
         } catch (IOException ex) {
             log.warn("writing output to the file caused error", ex);
             System.exit(2);
@@ -298,12 +315,14 @@ public class Run {
 
 
         // counting some logging info concernig time taken by recompressor
-        int time = (int) (System.currentTimeMillis() - startTime) / 1000;
+        int timeTaken = (int) (System.currentTimeMillis() - startTime);
+        int time = timeTaken/1000;
         int hour = time / 3600;
         int min = (time % 3600) / 60;
         int sec = (time % 3600) % 60;
         log.info("{} succesfully recompressed in {}", pdfFile, String.format("%02d:%02d:%02d", hour, min, sec));
         log.info("Totaly was recompressed {} images", pdfImages.getMapOfJbig2Images().size());
+//        System.err.println(String.format(";%d;%d",timeTaken, pdfImages.getMapOfJbig2Images().size()));
     }
 
     /**
@@ -327,6 +346,7 @@ public class Run {
                 + "-useOcr: engages use of an OCR engine used by jbig2enc (requires -s and -autoThresh)\n"
                 + "-lang <lang>: sets language used by an OCR engine (has effect only if -useOcr is enabled\n"
                 + "-ff: forces usage of OCR even if the source resolution is unknown"
+                + "-limit <limit>: sets limit of maximum pages (images) having a common global dictionary; option usefull for preventing having too big global dictionary and thus slowing down the PDF browsing experience"
                 + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }

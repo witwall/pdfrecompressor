@@ -315,7 +315,7 @@ int removeTemplates(jbig2ctx * ctx, std::list<int> &templatesToRemove) {
   // index ... represents pointer to dictionary (PIXAT) and is processed in reverse
   // it ... represents pointer to actual representant in list which should be removed
   int last = templatesToRemove.back();
-  for (int index = (pixat->n - 1); ((index >= (*it)) && (it != templatesToRemove.end())); index--) {
+  for (int index = (pixat->n - 1); ((it != templatesToRemove.end()) && (index >= (*it))); index--) {
 
     // check if we assign PIX which should not be removed
     if (index == last) {
