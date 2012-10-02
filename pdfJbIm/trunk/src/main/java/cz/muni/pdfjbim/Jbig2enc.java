@@ -39,6 +39,7 @@ public class Jbig2enc {
     private boolean useOcr = false; // enables OCR usage in jbig2enc
     private String lang = null; // sets language used by OCR engine (without effect if not enable use of OCR)
     private boolean forced = false; // forces ocr usage even for unknown resolution
+    private boolean segment = false; // puts images separatelly (jbig2enc option -S)
 
     public Jbig2enc(String jbig2enc) {
         if (jbig2enc == null) {
@@ -154,14 +155,18 @@ public class Jbig2enc {
         toRun.add(String.valueOf(defaultThresh));
         toRun.add("-T");
         toRun.add(String.valueOf(bwThresh));
+        
+        if (segment) {
+            toRun.add("-S");
+        }
 
         if (autoThresh) {
-            toRun.add("--autoThresh");
+            toRun.add("--auto-thresh");
 
             if (useOcr) {
-                toRun.add("-useOcr");
+                toRun.add("--use-ocr");
                 if (lang != null) {
-                    toRun.add("-lang");
+                    toRun.add("--lang");
                     toRun.add(lang);
                 }
             }

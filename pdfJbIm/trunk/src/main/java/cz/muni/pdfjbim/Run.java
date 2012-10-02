@@ -21,9 +21,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +55,11 @@ public class Run {
         boolean useOcr = false;
         String lang = null;
         boolean forceOcr = false;
+        boolean segment = false;
+        int imagesPerGlobalDictionary = Integer.MAX_VALUE;
+
         String basename = System.getProperty("java.io.tmpdir") + "/output";
-        
+
         int limit = Integer.MAX_VALUE;
 
 
@@ -126,7 +127,6 @@ public class Run {
                 continue;
             }
 
-
             if (args[i].equalsIgnoreCase("-bw_thresh")) {
                 i++;
                 if (i >= args.length) {
@@ -140,6 +140,12 @@ public class Run {
                 }
                 continue;
             }
+
+            if (args[i].equalsIgnoreCase("-segment")) {
+                segment = true;
+                continue;
+            }
+
 
             if (args[i].equalsIgnoreCase("-binarize")) {
                 binarize = true;
@@ -165,7 +171,7 @@ public class Run {
                 }
                 continue;
             }
-            
+
             if (args[i].equals("-limit")) {
                 i++;
                 if (i >= args.length) {
@@ -173,7 +179,7 @@ public class Run {
                 } else {
                     limit = Integer.parseInt(args[i]);
                     if (limit <= 0) {
-                        System.err.println("Setting limit of pages per global dictionary to maximal value");
+                        System.err.println("Setting limit of pages per global dictionary to maximal value => all images are using common global dictionary");
                         limit = Integer.MAX_VALUE;
                     }
                     continue;
@@ -237,6 +243,10 @@ public class Run {
 
         // returns names of extracted images as List
         List<String> jbig2encInputImages = imageExtractor.getNamesOfImages();
+
+        // getting informations about images that were in PDF such as dimension, position in PDF,...
+        List<PdfImageInformation> pdfImagesInfo = imageExtractor.getOriginalImageInformations();
+        List<Jbig2ForPdf> pdfImagesAsList = new ArrayList<Jbig2ForPdf>();
         if (jbig2encInputImages.isEmpty()) {
             if (!silent) {
                 log.info("No images in " + pdfFile + " to recompress");
@@ -254,23 +264,32 @@ public class Run {
             jbig2.setLang(lang);
 
             System.err.print(pdfFile);
+
+
             // engages jbig2enc with set parameters and creates output files based on basename
-            jbig2.run(jbig2encInputImages, basename);
+            Map<String, List<String>> jbig2encInputImagesSplittedToList = Utils.splitListOfStrings(jbig2encInputImages, limit, basename);
+            Map<String, List<PdfImageInformation>> pdfImagesInfoSplittedToList = Utils.
+                    splitListOfPdfImageInfo(pdfImagesInfo, limit, basename);
+
+            for (String basenameAsKey : jbig2encInputImagesSplittedToList.keySet()) {
+                jbig2.run(jbig2encInputImagesSplittedToList.get(basenameAsKey), basenameAsKey);
+
+                // reading output of encoder and associating with informations about them
+                int lastPathSeparator = basenameAsKey.lastIndexOf(File.separator);
+                String basenameDir = ".";
+                String basenameAfterSplit = basenameAsKey;
+                if (lastPathSeparator != -1) {
+                    basenameDir = basenameAsKey.substring(0, lastPathSeparator);
+                    basenameAfterSplit = basenameAsKey.substring(lastPathSeparator + 1);
+                }
+                log.debug("basename dir = {} and basename = {}", basenameDir, basenameAfterSplit);
+                Jbig2ForPdf pdfImages = new Jbig2ForPdf(basenameDir, basenameAfterSplit);
+                pdfImages.setJbig2ImagesInfo(pdfImagesInfoSplittedToList.get(basenameAsKey));
+
+                pdfImagesAsList.add(pdfImages);
+            }
         }
 
-        // getting informations about images that were in PDF such as size, position in PDF,...
-        List<PdfImageInformation> pdfImagesInfo = imageExtractor.getOriginalImageInformations();
-
-        // reading output of encoder and associating with informations about them
-        int lastPathSeparator = basename.lastIndexOf(File.separator);
-        String basenameDir = ".";
-        if (lastPathSeparator != -1) {
-            basenameDir = basename.substring(0, lastPathSeparator);
-            basename = basename.substring(lastPathSeparator + 1);
-        }
-        log.debug("basename dir = {} and basename = {}", basenameDir, basename);
-        Jbig2ForPdf pdfImages = new Jbig2ForPdf(basenameDir, basename);
-        pdfImages.setJbig2ImagesInfo(pdfImagesInfo);
 
         // creating output
         OutputStream out = null;
@@ -291,7 +310,7 @@ public class Run {
             // replaces images with their recompressed version based on image info and is stored
             // in output stream (out)
             PdfImageReplacer imageReplacer = new PdfImageReplacer();
-            imageReplacer.replaceImageUsingIText(pdfFile, out, pdfImages);
+            imageReplacer.replaceImageUsingIText(pdfFile, out, pdfImagesAsList);
 
             // counting some logging info concerning sizes of input vs output
             long sizeOfOutputPdf = fileName.length();
@@ -300,7 +319,7 @@ public class Run {
             log.info("Size of pdf file after recompression = {}", sizeOfOutputPdf);
             log.info("=> Saved {} % from original size", String.format("%.2f", saved));
             System.err.print(String.format(";%d;%d", sizeOfInputPdf, sizeOfOutputPdf));
-            
+
         } catch (IOException ex) {
             log.warn("writing output to the file caused error", ex);
             System.exit(2);
@@ -316,13 +335,21 @@ public class Run {
 
         // counting some logging info concernig time taken by recompressor
         int timeTaken = (int) (System.currentTimeMillis() - startTime);
-        int time = timeTaken/1000;
+        int time = timeTaken / 1000;
         int hour = time / 3600;
         int min = (time % 3600) / 60;
         int sec = (time % 3600) % 60;
         log.info("{} succesfully recompressed in {}", pdfFile, String.format("%02d:%02d:%02d", hour, min, sec));
-        log.info("Totaly was recompressed {} images", pdfImages.getMapOfJbig2Images().size());
+        log.info("Totaly was recompressed {} images", imagesInTotal(pdfImagesAsList));
 //        System.err.println(String.format(";%d;%d",timeTaken, pdfImages.getMapOfJbig2Images().size()));
+    }
+    
+    private static int imagesInTotal (List<Jbig2ForPdf> pdfImagesAsList) {
+        int total = 0;
+        for (Jbig2ForPdf pdfImages : pdfImagesAsList) {
+            total+= pdfImages.getMapOfJbig2Images().size();
+        }
+        return total;
     }
 
     /**
@@ -343,10 +370,11 @@ public class Run {
                 + "-pages <list of page numbers> -pagesEnd: list of pages that should be recompressed (taken only pages that exists, other ignored) -- now it is not working\n"
                 + "-binarize: enables to process not bi-tonal images (normally only bi-tonal images are processed and other are skipped)\n"
                 + "-basename <basename>: sets the basename for output files of jbig2enc\n"
+                + "-limit <limit>: sets limit of maximum pages (images) having a common global dictionary; option usefull for preventing having too big global dictionary and thus slowing down the PDF browsing experience\n"
+                + "-segment: enables option -S in jbig2enc encoder => images segmented separatelly, in default it is disabeled\n"
                 + "-useOcr: engages use of an OCR engine used by jbig2enc (requires -s and -autoThresh)\n"
                 + "-lang <lang>: sets language used by an OCR engine (has effect only if -useOcr is enabled\n"
-                + "-ff: forces usage of OCR even if the source resolution is unknown"
-                + "-limit <limit>: sets limit of maximum pages (images) having a common global dictionary; option usefull for preventing having too big global dictionary and thus slowing down the PDF browsing experience"
+                + "-ff: forces usage of OCR even if the source resolution is unknown\n"
                 + "-q: silent mode -- no error output is printed");
         System.exit(1);
     }
