@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +47,17 @@ public class PdfImageReplacer {
     private static final Logger log = LoggerFactory.getLogger(PdfImageReplacer.class);
 
     /**
-     * replace images by they recompressed version according to JBIG2 standard
-     * positions and image data given in imagesData
+     * replace images by they recompressed version according to JBIG2 standard positions and image
+     * data given in imagesData
+     *
      * @param pdfName represents name of original PDF file
      * @param os represents output stream for writing changed PDF file
-     * @param imagesData contains compressed images according to JBIG2 standard and informations about them
-     * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
+     * @param imagesData contains compressed images according to JBIG2 standard and informations
+     * about them
+     * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch
+     * DocumentException or IOException
      */
-    public void replaceImageUsingIText(String pdfName, OutputStream os, Jbig2ForPdf imagesData)
+    public void replaceImageUsingIText(String pdfName, OutputStream os, List<Jbig2ForPdf> imagesData)
             throws PdfRecompressionException {
 
         try {
@@ -65,14 +69,17 @@ public class PdfImageReplacer {
     }
 
     /**
-     * replace images by they recompressed version according to JBIG2 standard
-     * positions and image data given in imagesData
+     * replace images by they recompressed version according to JBIG2 standard positions and image
+     * data given in imagesData
+     *
      * @param originalPdf represents name of original PDF file
      * @param os represents output stream for writing changed PDF file
-     * @param imagesData contains compressed images according to JBIG2 standard and informations about them
-     * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch DocumentException or IOException
+     * @param imagesData contains compressed images according to JBIG2 standard and informations
+     * about them
+     * @throws PdfRecompressionException if version of PDF is lower than 1.4 or was catch
+     * DocumentException or IOException
      */
-    public void replaceImageUsingIText(InputStream originalPdf, OutputStream os, Jbig2ForPdf imagesData) throws PdfRecompressionException {
+    public void replaceImageUsingIText(InputStream originalPdf, OutputStream os, List<Jbig2ForPdf> imagesDataList) throws PdfRecompressionException {
         if (originalPdf == null) {
             throw new NullPointerException("pdfName");
         }
@@ -81,11 +88,9 @@ public class PdfImageReplacer {
             throw new NullPointerException("os");
         }
 
-        if (imagesData == null) {
+        if (imagesDataList == null) {
             throw new NullPointerException("imagesData is null => nothing to recompress");
         }
-
-        Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
 
 
         log.info("Replacing old images in PDF with their equivalent encoded according to standard JBIG2");
@@ -98,81 +103,90 @@ public class PdfImageReplacer {
 
             int version;
             if ((version = Integer.parseInt(String.valueOf(pdf.getPdfVersion()))) < 4) {
-                log.debug("PDF version of original PDF was {} => changing to PDF version 1.4", pdf.getPdfVersion());
+                log.debug("PDF version of original PDF was {} => changing to PDF version 1.4", pdf.
+                        getPdfVersion());
                 writer.setPdfVersion(PdfWriter.PDF_VERSION_1_4);
             }
 
-            Iterator itImages = jbig2Images.values().iterator();
-            String key;
-            if (itImages.hasNext()) {
-                PdfImage myImg = (PdfImage) itImages.next();
-                key = myImg.getPdfImageInformation().getKey();
-            } else {
-                key = "im0";
-            }
+            for (Jbig2ForPdf imagesData : imagesDataList) {
 
-            for (int pageNum = 1; pageNum <= pdf.getNumberOfPages(); pageNum++) {
+                Map<PdfObjId, PdfImage> jbig2Images = imagesData.getMapOfJbig2Images();
 
-                PdfDictionary pg = pdf.getPageN(pageNum);
-                PdfDictionary resPg =
-                        (PdfDictionary) PdfReader.getPdfObject(pg.get(PdfName.RESOURCES));
+                Iterator itImages = jbig2Images.values().iterator();
+                String key;
+                if (itImages.hasNext()) {
+                    PdfImage myImg = (PdfImage) itImages.next();
+                    key = myImg.getPdfImageInformation().getKey();
+                } else {
+                    key = "im0";
+                }
 
-                PdfDictionary xobjResPg =
-                        (PdfDictionary) PdfReader.getPdfObject(resPg.get(PdfName.XOBJECT));
+                for (int pageNum = 1; pageNum <= pdf.getNumberOfPages(); pageNum++) {
 
-                PdfObject obj = null;
-                if (xobjResPg != null) {
-                    for (Iterator it = xobjResPg.getKeys().iterator(); it.hasNext();) {
-                        PdfObject pdfObjIndirect = xobjResPg.get((PdfName) it.next());
-                        if (pdfObjIndirect.isIndirect()) {
-                            PdfDictionary pdfObj2 = (PdfDictionary) PdfReader.getPdfObject(pdfObjIndirect);
-                            PdfDictionary xobj2Res = (PdfDictionary) PdfReader.getPdfObject(pdfObj2.get(PdfName.RESOURCES));
-                            if (xobj2Res != null) {
-                                for (Iterator it2 = xobj2Res.getKeys().iterator(); it2.hasNext();) {
-                                    PdfObject resObj = xobj2Res.get((PdfName) it2.next());
-                                }
-                                PdfDictionary xobj = (PdfDictionary) PdfReader.getPdfObject(xobj2Res.get(PdfName.XOBJECT));
-                                if (xobj == null) {
-                                    continue;
-                                }
-                                obj = xobj.get(new PdfName(key));
-                            } else {
-                                obj = xobjResPg.get(new PdfName(key));
-                                if (obj == null) {
-                                    obj = pdfObjIndirect;
+                    PdfDictionary pg = pdf.getPageN(pageNum);
+                    PdfDictionary resPg =
+                            (PdfDictionary) PdfReader.getPdfObject(pg.get(PdfName.RESOURCES));
+
+                    PdfDictionary xobjResPg =
+                            (PdfDictionary) PdfReader.getPdfObject(resPg.get(PdfName.XOBJECT));
+
+                    PdfObject obj = null;
+                    if (xobjResPg != null) {
+                        for (Iterator it = xobjResPg.getKeys().iterator(); it.hasNext();) {
+                            PdfObject pdfObjIndirect = xobjResPg.get((PdfName) it.next());
+                            if (pdfObjIndirect.isIndirect()) {
+                                PdfDictionary pdfObj2 = (PdfDictionary) PdfReader.getPdfObject(pdfObjIndirect);
+                                PdfDictionary xobj2Res = (PdfDictionary) PdfReader.getPdfObject(pdfObj2.
+                                        get(PdfName.RESOURCES));
+                                if (xobj2Res != null) {
+                                    for (Iterator it2 = xobj2Res.getKeys().iterator(); it2.hasNext();) {
+                                        PdfObject resObj = xobj2Res.get((PdfName) it2.next());
+                                    }
+                                    PdfDictionary xobj = (PdfDictionary) PdfReader.getPdfObject(xobj2Res.
+                                            get(PdfName.XOBJECT));
+                                    if (xobj == null) {
+                                        continue;
+                                    }
+                                    obj = xobj.get(new PdfName(key));
+                                } else {
+                                    obj = xobjResPg.get(new PdfName(key));
+                                    if (obj == null) {
+                                        obj = pdfObjIndirect;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if ((obj != null) && (obj.isIndirect())) {
+                    if ((obj != null) && (obj.isIndirect())) {
 
-                    PdfDictionary tg = (PdfDictionary) PdfReader.getPdfObject(obj);
-                    if (tg == null) {
-                        continue;
-                    }
-                    PdfName type =
-                            (PdfName) PdfReader.getPdfObject(tg.get(PdfName.SUBTYPE));
-                    if (PdfName.IMAGE.equals(type)) {
-                        PRIndirectReference ref = (PRIndirectReference) obj;
-                        PdfObjId imId = new PdfObjId(ref.getNumber(), ref.getGeneration());
-                        PdfImage jbImage = jbig2Images.get(imId);
-                        if (jbImage == null) {
+                        PdfDictionary tg = (PdfDictionary) PdfReader.getPdfObject(obj);
+                        if (tg == null) {
                             continue;
                         }
-                        
-                        log.debug("Replacing image {}", jbImage);
-                        PdfImageInformation jbImageInfo = jbImage.getPdfImageInformation();
-                        Image img = Image.getInstance(jbImageInfo.getWidth(), jbImageInfo.getHeight(), jbImage.getImageData(), imagesData.getGlobalData());
+                        PdfName type =
+                                (PdfName) PdfReader.getPdfObject(tg.get(PdfName.SUBTYPE));
+                        if (PdfName.IMAGE.equals(type)) {
+                            PRIndirectReference ref = (PRIndirectReference) obj;
+                            PdfObjId imId = new PdfObjId(ref.getNumber(), ref.getGeneration());
+                            PdfImage jbImage = jbig2Images.get(imId);
+                            if (jbImage == null) {
+                                continue;
+                            }
 
-                        PdfReader.killIndirect(obj);
-                        Image maskImage = img.getImageMask();
+                            log.debug("Replacing image {}", jbImage);
+                            PdfImageInformation jbImageInfo = jbImage.getPdfImageInformation();
+                            Image img = Image.getInstance(jbImageInfo.getWidth(), jbImageInfo.
+                                    getHeight(), jbImage.getImageData(), imagesData.getGlobalData());
 
-                        if (maskImage != null) {
-                            writer.addDirectImageSimple(maskImage);
+                            PdfReader.killIndirect(obj);
+                            Image maskImage = img.getImageMask();
+
+                            if (maskImage != null) {
+                                writer.addDirectImageSimple(maskImage);
+                            }
+                            writer.addDirectImageSimple(img, (PRIndirectReference) obj);
                         }
-                        writer.addDirectImageSimple(img, (PRIndirectReference) obj);
                     }
                 }
             }
@@ -182,7 +196,9 @@ public class PdfImageReplacer {
             throw new PdfRecompressionException(dEx);
         } finally {
             log.debug("Deleting temporary files created during process of PDF recompression");
-            Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]));
+            for (Jbig2ForPdf imagesData : imagesDataList) {
+                Tools.deleteFilesFromList(imagesData.getJbFiles().toArray(new File[0]));
+            }
             try {
                 if (stp != null) {
                     stp.close();
@@ -193,5 +209,6 @@ public class PdfImageReplacer {
                 log.error("Exception thrown while closing stream", ex);
             }
         }
+
     }
 }

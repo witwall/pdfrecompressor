@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-
 /**
  * tests class PdfImageProcessor
  *
@@ -27,7 +26,6 @@ public class PdfImageProcessorTest {
 
     public PdfImageProcessorTest() {
     }
-
 
     @Before
     public void setUp() throws IOException {
@@ -41,15 +39,15 @@ public class PdfImageProcessorTest {
     @After
     public void tearDown() {
     }
-    
+
     @Test
     public void emptyTest() {
-        
     }
 
     /**
      * Test of extractImagesUsingPdfParser method, of class PdfImageProcessor.
-     * @throws Exception 
+     *
+     * @throws Exception
      */
 //    @Test
     public void testExtractImagesUsingPdfParser() throws Exception {
@@ -77,7 +75,8 @@ public class PdfImageProcessorTest {
             pdfProcessing.extractImages(dict + pdf.getFileName(), null, null, true);
             images = pdfProcessing.getNamesOfImages();
             Tools.deleteFilesFromList(images);
-            assertEquals(pdf.getFileName(), pdf.getNumOfAllImWithoutLZW(), pdfProcessing.getNamesOfImages().size());
+            assertEquals(pdf.getFileName(), pdf.getNumOfAllImWithoutLZW(), pdfProcessing.
+                    getNamesOfImages().size());
         }
     }
 
@@ -133,17 +132,17 @@ public class PdfImageProcessorTest {
                 Tools.copyDir(dictData, testDir);
                 Jbig2ForPdf pdfImages = new Jbig2ForPdf(testDir.getPath(), "output");
                 pdfImages.setJbig2ImagesInfo(pdf.getImages());
+                List<Jbig2ForPdf> pdfImagesAsList = new ArrayList<Jbig2ForPdf>();
+                pdfImagesAsList.add(pdfImages);
                 PdfImageReplacer pdfProcessor = new PdfImageReplacer();
                 pdfProcessor.replaceImageUsingIText(dictData + File.separator + pdf.getFileName() + ".pdf", out,
-                        pdfImages);
+                        pdfImagesAsList);
             } catch (PdfRecompressionException ex) {
                 ex.printStackTrace(System.err);
                 fail(pdfs.get(i).getFileName() + ": unable to replace images - exception thrown");
-            }finally {
+            } finally {
                 out.close();
             }
         }
     }
 }
-
-

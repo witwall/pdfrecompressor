@@ -26,10 +26,12 @@
     <logger name="logToFile">
         <level value="DEBUG"/>
         <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT" />
     </logger>
 
     <root>
         <level value="DEBUG" />    
         <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT" />
     </root>
 </configuration>
